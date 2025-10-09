@@ -69,7 +69,7 @@
     update_repo_cache: true
     wait: true
     wait_timeout: 15m
-    atomic: true
+    atomic: false
     values:
       image:
         repository: '{{ superset_image | default("ghcr.io/washu-tag/superset") }}'
@@ -79,18 +79,18 @@
           repository: bitnamilegacy/redis
       extraSecretEnv:
         SUPERSET_SECRET_KEY: '{{ superset_secret }}'
-      ingress:
-        enabled: true
-        ingressClassName: traefik
-        path: /
-        hosts:
-          - '{{ server_hostname }}'
+      # ingress:
+      #   enabled: true
+      #   ingressClassName: traefik
+      #   path: /
+      #   hosts:
+      #     - '{{ server_hostname }}'
       postgresql:
         enabled: false
       supersetNode:
         connections:
-          db_host: 'postgresql-cluster-rw.{{ postgres_cluster_namespace }}'
-          db_port: '5432'
+          db_host: '{{ db_host }}'
+          db_port: '{{ db_port }}'
           db_user: '{{ superset_postgres_user }}'
           db_pass: '{{ superset_postgres_password }}'
           db_name: superset

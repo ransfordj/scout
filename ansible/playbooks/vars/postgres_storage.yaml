@@ -7,3 +7,4 @@ storage_definitions:
     path: '{{ postgres_dir }}'
     pv_name: '{{ postgres_name }}-pv'
     storage_class_name: '{{ postgres_storage_class }}'
+    

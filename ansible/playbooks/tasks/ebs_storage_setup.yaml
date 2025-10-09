@@ -1,0 +1,13 @@
+- name: Add EBS storage class
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: "{{ ebs_storage_class_name }}"
+      provisioner: ebs.csi.eks.amazonaws.com
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        type: gp3

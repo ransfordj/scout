@@ -1,0 +1,71 @@
+- name: Ensure target namespace exists
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ rds_init_ns }}"
+
+- name: Create init.sql ConfigMap for RDS
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: rds-init-sql
+        namespace: "{{ rds_init_ns }}"
+      data:
+        init.sql: |-
+          {% for stmt in postgres_init_sql %}
+          {{ stmt | trim }}
+          {% endfor %}
+          
+- name: Initialize RDS Postgres instance
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: rds-init
+        namespace: "{{ rds_init_ns }}"
+      spec:
+        backoffLimit: 0
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: psql
+                image: postgres:16
+                env:
+                  - name: PGPASSWORD
+                    value: "{{ rds_master_password }}"
+                command: ["/bin/bash","-lc"]
+                args:
+                  - >
+                    psql "host={{ rds_db_endpoint }} port={{ rds_db_port|default(5432) }}
+                    user={{ rds_master_username|default(postgres) }} 
+                    sslmode=require" -v ON_ERROR_STOP=1 -f /sql/init.sql
+                volumeMounts:
+                  - name: sql
+                    mountPath: /sql
+            volumes:
+              - name: sql
+                configMap:
+                  name: rds-init-sql
+                  items:
+                    - key: init.sql
+                      path: init.sql
+
+- name: Wait for RDS init job to complete successfully
+  kubernetes.core.k8s_info:
+    api_version: batch/v1
+    kind: Job
+    name: rds-init
+    namespace: "{{ rds_init_ns }}"
+  register: rds_init_job
+  until: rds_init_job.resources | length > 0 and (rds_init_job.resources[0].status.succeeded | default(0) | int) > 0
+  retries: 30
+  delay: 10

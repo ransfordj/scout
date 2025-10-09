@@ -13,13 +13,11 @@ service:
   port: 8080
 volumes:
   - name: data
-    hostPath:
-      path: '{{ extractor_data_dir }}'
+    emptyDir: {}
 volumeMounts:
   - name: data
     mountPath: /data
-    readOnly: true
-    mountPropagation: HostToContainer
+    readOnly: false
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
@@ -43,7 +41,7 @@ config:
       region: '{{ s3_region }}'
     spring:
       datasource:
-        url: 'jdbc:postgresql://postgresql-cluster-rw.{{ postgres_cluster_namespace }}:5432/ingest'
+        url: '{{ jdbc_url }}/ingest'
         username: '{{ postgres_user }}'
         password: '{{ postgres_password }}'
       temporal:

@@ -22,6 +22,7 @@
   delegate_to: localhost
 
 - name: Create Traefik Middleware to add trailing slash
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -38,6 +39,7 @@
   delegate_to: localhost
 
 - name: Create Traefik Middleware to strip prefix
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -113,7 +115,7 @@
           existingSecret: true
         env: '{{ minio_env_variables }}'
         pools:
-          - servers: '{{ groups["minio_hosts"] | length | default(1) }}'
+          - servers: "{{ (groups.get('minio_hosts', [] ) | length) | default(1, true) }}"
             name: pool-0
             volumesPerServer: '{{ minio_volumes_per_server | default(1) }}'
             size: "{{ minio_storage_size | default('100Gi') }}"
@@ -138,7 +140,7 @@
           requestAutoCert: false
         buckets: '{{ minio_buckets }}'
         users: '{{ minio_credentials }}'
-      ingress: '{{ minio_ingress_config }}'
+      # ingress: '{{ minio_ingress_config }}'
   delegate_to: localhost
 
 - name: Wait for MinIO StatefulSet to exist

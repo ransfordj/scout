@@ -1,7 +1,7 @@
 cassandra_name: cassandra
-cassandra_storage_class: '{{ cassandra_name }}-storage'
+cassandra_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, cassandra_name ~ '-storage') }}"
 elasticsearch_name: elasticsearch
-elasticsearch_storage_class: '{{ elasticsearch_name }}-storage'
+elasticsearch_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, elasticsearch_name ~ '-storage') }}"
 
 storage_definitions:
   - name: '{{ cassandra_name }}'

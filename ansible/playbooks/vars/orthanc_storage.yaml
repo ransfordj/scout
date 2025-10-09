@@ -1,5 +1,5 @@
 orthanc_name: orthanc
-orthanc_storage_class: '{{ orthanc_name }}-storage'
+orthanc_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, orthanc_name ~ '-storage') }}"
 
 storage_definitions:
   - name: '{{ orthanc_name }}'

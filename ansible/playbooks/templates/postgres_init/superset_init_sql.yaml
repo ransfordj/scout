@@ -1,3 +1,18 @@
 ---
-- "CREATE USER {{ superset_postgres_user }} WITH PASSWORD '{{ superset_postgres_password }}';"
-- 'CREATE DATABASE superset OWNER {{ superset_postgres_user }};'
+- |
+    DO
+    $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{{ superset_postgres_user }}') THEN
+        CREATE ROLE {{ superset_postgres_user }} LOGIN PASSWORD '{{ superset_postgres_password }}';
+      ELSE
+        ALTER ROLE {{ superset_postgres_user }} WITH LOGIN PASSWORD '{{ superset_postgres_password }}';
+      END IF;
+    END
+    $$;
+- "GRANT {{ superset_postgres_user }} TO CURRENT_USER;"
+- |
+    SELECT 'CREATE DATABASE superset OWNER {{ superset_postgres_user }}'
+    WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'superset');
+    \gexec
+- "REVOKE {{ superset_postgres_user }} FROM CURRENT_USER;"

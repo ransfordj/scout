@@ -6,6 +6,7 @@
     - vars/orthanc_storage.yaml
   tasks:
     - name: Create storage directories
+      when: not aws_deployment
       include_tasks: tasks/storage_dir_create.yaml
 
 - name: Install Orthanc
@@ -18,6 +19,7 @@
     - vars/orthanc_storage.yaml
   tasks:
     - name: Set up storage
+      when: not aws_deployment
       include_tasks: tasks/storage_setup.yaml
 
     - name: Create Orthanc namespace
@@ -28,6 +30,7 @@
         state: present
 
     - name: Create Traefik Middleware to add trailing slash
+      when: not aws_deployment
       kubernetes.core.k8s:
         state: present
         definition:
@@ -43,6 +46,7 @@
               permanent: true
 
     - name: Create Traefik Middleware to strip prefix
+      when: not aws_deployment
       kubernetes.core.k8s:
         state: present
         definition:

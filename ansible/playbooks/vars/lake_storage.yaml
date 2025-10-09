@@ -1,5 +1,4 @@
 minio_name: minio
-minio_storage_class: minio-storage
 
 storage_definitions_raw: >-
   [{% set ns = namespace(last_node=false) -%}
@@ -11,7 +10,7 @@ storage_definitions_raw: >-
         "size": "{{ minio_storage_size | default('100Gi') }}",
         "path": "{{ minio_dir }}{{ i }}",
         "pv_name": "{{ minio_name }}-pv-{{ node_url }}-{{ i }}",
-        "storage_class_name": "{{ minio_storage_class }}",
+        "storage_class_name": "{{ minio_storage_class | default('minio-storage') }}",
         "node_url": "{{ node_url }}"
       }{% if not (loop.last and ns.last_node) %},{% endif %}
     {%- endfor %}

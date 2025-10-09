@@ -18,16 +18,14 @@ env:
     value: '{{ modality_map_path }}'
 volumes:
   - name: data
-    hostPath:
-      path: '{{ extractor_data_dir }}'
+    emptyDir: {}
   - name: spark-defaults
     configMap:
       name: spark-defaults
 volumeMounts:
   - name: data
     mountPath: /data
-    readOnly: true
-    mountPropagation: HostToContainer
+    readOnly: false
   - name: spark-defaults
     mountPath: /opt/spark/conf/spark-defaults.conf
     subPath: spark-defaults.conf

@@ -1,3 +1,18 @@
 ---
-- "CREATE USER {{ hive_postgres_user }} WITH PASSWORD '{{ hive_postgres_password }}';"
-- 'CREATE DATABASE hive OWNER {{ hive_postgres_user }};'
+- |
+    DO
+    $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{{ hive_postgres_user }}') THEN
+        CREATE ROLE {{ hive_postgres_user }} LOGIN PASSWORD '{{ hive_postgres_password }}';
+      ELSE
+        ALTER ROLE {{ hive_postgres_user }} WITH LOGIN PASSWORD '{{ hive_postgres_password }}';
+      END IF;
+    END
+    $$;
+- "GRANT {{ hive_postgres_user }} TO CURRENT_USER;"
+- |
+    SELECT 'CREATE DATABASE hive OWNER {{ hive_postgres_user }}'
+    WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'hive');
+    \gexec
+- "REVOKE {{ hive_postgres_user }} FROM CURRENT_USER;"

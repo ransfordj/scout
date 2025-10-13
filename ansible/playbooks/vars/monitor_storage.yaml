@@ -1,9 +1,9 @@
 prometheus_name: prometheus
-prometheus_storage_class: '{{ prometheus_name }}-storage'
+prometheus_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, prometheus_name ~ '-storage') }}"
 loki_name: loki
-loki_storage_class: '{{ loki_name }}-storage'
+loki_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, loki_name ~ '-storage') }}"
 grafana_name: grafana
-grafana_storage_class: '{{ grafana_name }}-storage'
+grafana_storage_class: "{{ aws_deployment | ternary(ebs_storage_class_name, grafana_name ~ '-storage') }}"
 
 storage_definitions:
   - name: '{{ prometheus_name }}'

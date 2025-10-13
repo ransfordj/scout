@@ -6,6 +6,7 @@
     - vars/monitor_storage.yaml
   tasks:
     - name: Create storage directories
+      when: not aws_deployment
       include_tasks: tasks/storage_dir_create.yaml
 
 - name: Install components for Monitor service

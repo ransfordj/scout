@@ -6,6 +6,7 @@
     - vars/jupyter_storage.yaml
   tasks:
     - name: Create storage directories
+      when: not aws_deployment
       include_tasks: tasks/storage_dir_create.yaml
 
 - name: Install JupyterHub
@@ -17,6 +18,7 @@
     - vars/jupyter_storage.yaml
   tasks:
     - name: Set up storage
+      when: not aws_deployment
       include_tasks: tasks/storage_setup.yaml
 
     - name: Create Jupyter namespace

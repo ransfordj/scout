@@ -21,6 +21,10 @@
       when: not aws_deployment
       include_tasks: tasks/storage_setup.yaml
 
+    - name: Set up EBS storage class
+      when: aws_deployment
+      include_tasks: tasks/ebs_storage_setup.yaml
+
     - name: Install MinIO
       include_tasks: services/minio.yaml
 

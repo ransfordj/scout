@@ -8,15 +8,24 @@
   kubernetes.core.helm:
     name: trino
     chart_ref: trino/trino
-    chart_version: ~1.38.0
+    chart_version: "~1.40.0"
     release_namespace: trino
     create_namespace: true
     release_state: present
     update_repo_cache: true
     wait: true
-    wait_timeout: 5m
-    atomic: false
+    wait_timeout: 10m
+    atomic: true
     values:
+      # ---- Cluster-wide settings ----
+      server:
+        config:
+          query.max-memory: "64GB"
+        additionalConfigProperties:
+          - "query.max-total-memory=96GB"
+          - "spill-enabled=true"
+          - "spiller-spill-path=/var/trino/spill"
+
       catalogs:
         delta: |
           connector.name=delta_lake
@@ -29,10 +38,82 @@
           s3.region={{ s3_region }}
           s3.endpoint={{ s3_endpoint }}
           s3.path-style-access=true
+
+      # ---- Coordinator ----
       coordinator:
         annotations:
-          prometheus.io/trino_scrape: 'true'
+          prometheus.io/trino_scrape: "true"
+        config:
+          coordinator: "true"
+          http-server.http.port: "8080"
+          discovery-server.enabled: "true"
+          discovery.uri: "http://trino-coordinator.trino.svc.cluster.local:8080"
+          # Per-node memory controls on the coordinator
+          query.max-memory-per-node: "3GB"
+          memory.heap-headroom-per-node: "1GB"
+        jvm:
+          maxHeapSize: "4G"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+
+      # ---- Workers ----
       worker:
         annotations:
-          prometheus.io/trino_scrape: 'true'
+          prometheus.io/trino_scrape: "true"
+        replicas: 4
+        config:
+          coordinator: "false"
+          http-server.http.port: "8080"
+          discovery.uri: "http://trino-coordinator.trino.svc.cluster.local:8080"
+          # Per-node memory controls on workers
+          query.max-memory-per-node: "6GB"
+          memory.heap-headroom-per-node: "2GB"
+        jvm:
+          maxHeapSize: "8G"
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "4Gi"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+
+        # Spread workers across nodes and zones
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: worker
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: worker
+
+        # Gentle anti-affinity for extra spreading
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: worker
+                  topologyKey: kubernetes.io/hostname
+
+        # Spill to fast scratch (emptyDir)
+        additionalVolumes:
+          - name: spill
+            emptyDir: {}
+        additionalVolumeMounts:
+          - name: spill
+            mountPath: "/var/trino/spill"
   delegate_to: localhost

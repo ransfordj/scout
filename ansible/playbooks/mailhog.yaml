@@ -71,6 +71,7 @@
                 targetPort: 8025
 
     - name: Deploy MailHog Ingress (Traefik, no auth)
+      when: not aws_deployment
       kubernetes.core.k8s:
         state: present
         definition:

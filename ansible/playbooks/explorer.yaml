@@ -8,6 +8,7 @@
 
   tasks:
     - name: Create Traefik Middleware to strip /launchpad prefix for internal traffic
+      when: not aws_deployment
       kubernetes.core.k8s:
         state: present
         definition:

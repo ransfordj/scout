@@ -18,14 +18,3 @@
   roles:
     - role: postgres
       when: not aws_deployment
-
-- name: Initialize RDS Postgres
-  hosts: server
-  gather_facts: false
-  environment:
-    KUBECONFIG: '{{ kubeconfig_yaml }}'
-    K8S_AUTH_KUBECONFIG: '{{ kubeconfig_yaml }}'
-  tasks: 
-    - name: Include RDS init
-      when: aws_deployment
-      ansible.builtin.include_tasks: tasks/rds_init.yaml

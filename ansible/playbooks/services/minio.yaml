@@ -75,7 +75,7 @@
           existingSecret: true
         env: '{{ minio_env_variables }}'
         pools:
-          - servers: '{{ groups["minio_hosts"] | length | default(1) }}'
+          - servers: "{{ (groups.get('minio_hosts', [] ) | length) | default(1, true) }}"
             name: pool-0
             volumesPerServer: '{{ minio_volumes_per_server | default(1) }}'
             size: "{{ minio_storage_size | default('100Gi') }}"

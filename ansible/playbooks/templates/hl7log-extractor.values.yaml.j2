@@ -43,7 +43,7 @@ config:
       region: '{{ s3_region }}'
     spring:
       datasource:
-        url: 'jdbc:postgresql://postgresql-cluster-rw.{{ postgres_cluster_namespace }}:5432/ingest'
+        url: '{{jdbc_url}}/ingest'
         username: '{{ postgres_user }}'
         password: '{{ postgres_password }}'
       temporal:

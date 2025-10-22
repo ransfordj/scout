@@ -94,4 +94,3 @@
         additionalVolumeMounts:
           - name: spill
             mountPath: "/var/trino/spill"
-  delegate_to: localhost

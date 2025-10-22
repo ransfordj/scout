@@ -6,7 +6,7 @@
     KUBECONFIG: '{{ kubeconfig_yaml }}'
     pre_tasks:
     - name: Initialize Ingest DB objects
-      include_tasks: tasks/db-init.yaml
+      include_tasks: tasks/db_init.yaml
       vars:
         service_name: "ingest"
   tasks:

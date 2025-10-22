@@ -40,9 +40,11 @@
     # Use localhost when air-gapped OR deploying local chart (no helm_repo_name)
     is_local_chart: '{{ helm_repo_name is not defined or helm_repo_name is none or helm_repo_name | length == 0 }}'
     use_localhost: '{{ air_gapped | default(false) | bool or is_local_chart | bool }}'
-  delegate_to: '{{ use_localhost | ternary("localhost", omit) }}'
+    helm_delegate_host: "{{ use_localhost | ternary('localhost', inventory_hostname) }}"
+    effective_kubeconfig: "{{ use_localhost | ternary(local_kubeconfig_yaml, kubeconfig_yaml) }}"
+  delegate_to: '{{ helm_delegate_host }}'
   environment:
-    KUBECONFIG: '{{ use_localhost | ternary(local_kubeconfig_yaml, kubeconfig_yaml) }}'
+    KUBECONFIG: '{{ effective_kubeconfig }}'
   block:
     - name: 'Add Helm repository for {{ helm_chart_name }}'
       kubernetes.core.helm_repository:

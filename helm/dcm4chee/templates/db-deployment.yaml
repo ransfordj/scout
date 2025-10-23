@@ -37,8 +37,14 @@ spec:
             - name: data
               mountPath: /var/lib/postgresql
               readOnly: false
+              {{- if not .Values.useEmptyDir }}
               mountPropagation: HostToContainer
+              {{- end }}
       volumes:
         - name: data
+          {{- if .Values.useEmptyDir }}
+          emptyDir: {}
+          {{- else }}
           hostPath:
             path: "{{ .Values.paths.db }}"
+          {{- end }}

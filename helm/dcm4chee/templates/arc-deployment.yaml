@@ -63,8 +63,16 @@ spec:
           {{- end }}
       volumes:
         - name: wildfly
+          {{- if .Values.useEmptyDir }}
+          emptyDir: {}
+          {{- else }}
           hostPath:
             path: "{{ .Values.paths.wildfly }}"
+          {{- end }}
         - name: storage
+          {{- if .Values.useEmptyDir }}
+          emptyDir: {}
+          {{- else }}
           hostPath:
             path: "{{ .Values.paths.storage }}"
+          {{- end }}

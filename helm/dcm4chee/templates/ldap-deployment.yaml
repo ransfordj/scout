@@ -38,15 +38,27 @@ spec:
             - name: openldap-data
               mountPath: /var/lib/openldap/openldap-data
               readOnly: false
+              {{- if not .Values.useEmptyDir }}
               mountPropagation: HostToContainer
+              {{- end }}
             - name: slapd
               mountPath: /etc/openldap/slapd.d
               readOnly: false
+              {{- if not .Values.useEmptyDir }}
               mountPropagation: HostToContainer
+              {{- end }}
       volumes:
         - name: openldap-data
+          {{- if .Values.useEmptyDir }}
+          emptyDir: {}
+          {{- else }}
           hostPath:
             path: "{{ .Values.paths.openldap }}"
+          {{- end }}
         - name: slapd
+          {{- if .Values.useEmptyDir }}
+          emptyDir: {}
+          {{- else }}
           hostPath:
             path: "{{ .Values.paths.slapd }}"
+          {{- end }}

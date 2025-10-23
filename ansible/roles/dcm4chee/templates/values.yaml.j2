@@ -24,6 +24,8 @@ ingress:
 
 resources: {{ dcm4chee_resources | to_json }}
 
+useEmptyDir: {{ aws_deployment }}
+
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: false
@@ -43,11 +45,15 @@ arcVolumeMounts:
   - name: wildfly
     mountPath: /opt/wildfly/standalone
     readOnly: false
+{% if not aws_deployment %}
     mountPropagation: HostToContainer
+{% endif %}
   - name: storage
     mountPath: /storage
     readOnly: false
+{% if not aws_deployment %}
     mountPropagation: HostToContainer
+{% endif %}
 
 versions:
   arc: '{{ dcm4chee_arc_version }}'

@@ -57,8 +57,12 @@ volumes:
     secret:
       secretName: orthanc-secret
   - name: data
+{% if aws_deployment %}
+    emptyDir: {}
+{% else %}
     hostPath:
       path: '{{ orthanc_dir }}'
+{% endif %}
 
 volumeMounts:
   - mountPath: /etc/orthanc
@@ -67,7 +71,9 @@ volumeMounts:
   - name: data
     mountPath: /var/lib/orthanc/db
     readOnly: false
+{% if not aws_deployment %}
     mountPropagation: HostToContainer
+{% endif %}
 
 nodeSelector: {}
 

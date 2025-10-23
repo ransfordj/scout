@@ -39,7 +39,9 @@
     helm_chart_ref: '{{ scout_repo_dir }}/helm/orthanc'
     helm_chart_namespace: '{{ orthanc_namespace }}'
     helm_chart_create_namespace: false
-    helm_chart_timeout: 2m
+    helm_chart_timeout: "{{ '10m' if aws_deployment else '5m' }}"
+    helm_chart_wait: "{{ (not aws_deployment) | ternary('True', 'False') }}"
+    helm_chart_atomic: "{{ (not aws_deployment) | ternary('True', 'False') }}"
     helm_chart_values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
 
 # Populate PACS with test data (optional)

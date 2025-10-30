@@ -53,6 +53,11 @@ s3_lake_writer: lake-writer
 s3_loki_writer: loki-writer
 lake_bucket: lake
 scratch_bucket: scratch
+s3_force_path_style_default: true
+s3_allow_http_default: true
+loki_chunks_bucket: scout-dev-01-loki-chunks
+loki_ruler_bucket: scout-dev-01-loki-ruler
+loki_admin_bucket: scout-dev-01-loki-admin
 
 # Deployment Type
 deployment_type: onprem
@@ -80,10 +85,13 @@ scratch_path: 's3://{{ scratch_bucket }}'
 delta_lake_path: 's3a://{{ lake_bucket }}/delta' # Hadoop requires the s3a prefix
 
 # Computed values (DO NOT CHANGE)
-s3_endpoint: 'http://minio.{{ minio_tenant_namespace }}'
+aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
+s3_endpoint: "{{ aws_deployment | ternary('https://s3.' ~ s3_region ~ '.amazonaws.com', 'http://minio.' ~ minio_tenant_namespace) }}"
+s3_force_path_style: '{{ aws_deployment | ternary(false, s3_force_path_style_default) }}'
+s3_allow_http: '{{ aws_deployment | ternary(false, s3_allow_http_default) }}'
+s3_manage_secrets: '{{ not aws_deployment }}'
 hive_metastore_endpoint: 'thrift://hive-metastore.{{ hive_namespace }}:9083'
 server_hostname: '{{ hostvars[groups["server"][0]].external_url | default(groups["server"][0]) }}'
-aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
 db_host: '{{ postgres_cluster_name }}-rw.{{ postgres_cluster_namespace }}'
 db_host_ro: '{{ postgres_cluster_name }}-r.{{ postgres_cluster_namespace }}'
 db_port: 5432

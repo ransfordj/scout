@@ -10,6 +10,9 @@ export default function App() {
     setMounted(true);
   }, []);
 
+  const deploymentType = (import.meta.env.VITE_DEPLOYMENT_TYPE ?? '').trim().toLowerCase();
+  const showMinioLink = deploymentType !== 'aws';
+
   const getSubdomainUrl = (subdomain) => {
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
@@ -100,13 +103,15 @@ export default function App() {
             Admin Tools
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <a
-              href={getSubdomainUrl('minio')}
-              className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-red-50 to-white text-red-700 border border-red-100 shadow hover:shadow-md transition-all duration-300 no-underline"
-            >
-              <SiMinio className="text-2xl" />
-              <span className="font-medium">Lake</span>
-            </a>
+            {showMinioLink && (
+              <a
+                href={getSubdomainUrl('minio')}
+                className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-red-50 to-white text-red-700 border border-red-100 shadow hover:shadow-md transition-all duration-300 no-underline"
+              >
+                <SiMinio className="text-2xl" />
+                <span className="font-medium">Lake</span>
+              </a>
+            )}
 
             <a
               href={getSubdomainUrl('temporal')}

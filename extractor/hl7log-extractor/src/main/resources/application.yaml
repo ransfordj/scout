@@ -28,7 +28,7 @@ spring:
       connection-timeout: 300000
       leak-detection-threshold: 720000 # log stack-trace if a connection is held >12m
 s3:
-  endpoint: 'http://minio.minio:9000'
+  endpoint: '${S3_ENDPOINT:}'
   region: us-east-1
   max-connections: 50
 management:

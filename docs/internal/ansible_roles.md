@@ -106,7 +106,7 @@ Used by: Staging node deployment when `use_staging_node: true`
 
 The following playbooks will be refactored into roles in future work:
 
-- **lake**: MinIO object storage and Hive Metastore deployment
+- **lake**: Object storage (MinIO on-prem or S3 on AWS) and Hive Metastore deployment
 - **orchestrator**: Temporal workflow engine with Cassandra backend
 - **extractor**: HL7 data extraction services (hl7log-extractor, hl7-transformer)
 - **analytics**: Apache Superset for data visualization

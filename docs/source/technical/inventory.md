@@ -182,7 +182,7 @@ The NVIDIA GPU Operator will be automatically deployed on these nodes.
 
 ### MinIO Hosts Group
 
-Nodes where MinIO object storage will run. MinIO requires direct disk access:
+Nodes where MinIO object storage will run. This group is only required for on-premises deployments; omit it when `deployment_type: aws` so the cluster uses native S3 instead. MinIO requires direct disk access:
 
 ```yaml
 minio_hosts:

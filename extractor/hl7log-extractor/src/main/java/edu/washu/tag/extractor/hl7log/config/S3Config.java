@@ -3,6 +3,7 @@ package edu.washu.tag.extractor.hl7log.config;
 import java.net.URI;
 import java.time.Duration;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
@@ -35,16 +37,21 @@ public class S3Config {
      */
     @Bean
     public S3Client s3Client() {
-        return S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
+        S3Configuration.Builder configurationBuilder = S3Configuration.builder();
+        S3ClientBuilder clientBuilder = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(true)
-                        .build())
                 .httpClientBuilder(ApacheHttpClient.builder()
                         .maxConnections(ObjectUtils.defaultIfNull(maxConnections, 50))
-                        .connectionTimeout(Duration.ofSeconds(5)))
+                        .connectionTimeout(Duration.ofSeconds(5)));
+
+        if (StringUtils.isNotBlank(endpoint)) {
+            clientBuilder.endpointOverride(URI.create(endpoint));
+            configurationBuilder.pathStyleAccessEnabled(true);
+        }
+
+        return clientBuilder
+                .serviceConfiguration(configurationBuilder.build())
                 .build();
     }
 }

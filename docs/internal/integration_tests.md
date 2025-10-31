@@ -32,7 +32,7 @@ cp -r tests/staging_test_data/hl7 ../data/
 ```
 cp .github/ci_resources/test_config_template.json tests/src/test/resources/config/local.json
 ```
-* Run the tests as a k8s job so they can talk to minio
+* Run the tests as a k8s job so they can talk to the object store (MinIO or S3)
 ```
 sed "s:WORK_DIR:$(pwd):" .github/ci_resources/tests-job.yaml | kubectl apply -f -
 kubectl -n extractor logs -f job/ci-tests

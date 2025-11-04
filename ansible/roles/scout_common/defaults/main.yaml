@@ -163,11 +163,14 @@ keycloak_subdomain: keycloak
 enable_chat: false
 
 # Computed values (DO NOT CHANGE)
-s3_endpoint: 'http://minio.{{ minio_tenant_namespace }}'
+aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
+s3_endpoint: "{{ aws_deployment | ternary('https://s3.' ~ s3_region ~ '.amazonaws.com', 'http://minio.' ~ minio_tenant_namespace) }}"
+s3_force_path_style: '{{ not aws_deployment }}'
+s3_allow_http: '{{ not aws_deployment }}'
+s3_manage_secrets: '{{ not aws_deployment }}'
 hive_metastore_endpoint: 'thrift://{{ hive_metastore_instance }}.{{ hive_namespace }}:9083'
 hive_metastore_endpoint_readonly: 'thrift://{{ hive_metastore_instance_readonly }}.{{ hive_namespace }}:9083'
 server_hostname: '{{ hostvars[groups["server"][0]].external_url | default(groups["server"][0]) }}'
-aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
 db_host: '{{ postgres_cluster_name }}-rw.{{ postgres_cluster_namespace }}'
 db_host_ro: '{{ postgres_cluster_name }}-r.{{ postgres_cluster_namespace }}'
 db_port: 5432

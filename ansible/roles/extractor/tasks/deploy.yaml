@@ -36,6 +36,7 @@
         DB_PASSWORD: '{{ postgres_password }}'
 
 - name: Create S3 secret
+  when: s3_manage_secrets
   kubernetes.core.k8s:
     state: present
     definition:
@@ -58,10 +59,10 @@
       metadata:
         name: s3-env
         namespace: '{{ extractor_namespace }}'
-      data:
-        AWS_ENDPOINT_URL: '{{ s3_endpoint }}'
-        AWS_ALLOW_HTTP: 'true'
-        AWS_REGION: '{{ s3_region }}'
+      data: "{{ {'AWS_REGION': s3_region}
+        | combine(((s3_endpoint | default('')) | length > 0) | ternary({'AWS_ENDPOINT_URL': s3_endpoint}, {}))
+        | combine(s3_allow_http | ternary({'AWS_ALLOW_HTTP': 'true'}, {}))
+        }}"
 
 - name: Check modality mapping file exists
   ansible.builtin.stat:

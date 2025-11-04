@@ -9,11 +9,14 @@ imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: '{{ hive_fullname_override | default("") }}'
 
+{% if (s3_manage_secrets | string | lower) != 'true' %}
 serviceAccount:
-  create: false
+  create: {{ aws_deployment | ternary(true, false) }}
   automount: true
-  annotations: {}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ lake_reader_role_arn }}
   name: ''
+{% endif %}
 
 podAnnotations: {}
 podLabels: {}
@@ -57,12 +60,14 @@ env:
     value: '{{ hive_metastore_db_user }}'
   - name: HIVE_METASTORE_WAREHOUSE_DIR
     value: '{{ delta_lake_path }}'
-  - name: S3_ENDPOINT
-    value: '{{ s3_endpoint }}'
-  - name: S3_ACCESS_KEY
-    value: '{{ hive_s3_access_key }}'
   - name: S3_PATH_STYLE_ACCESS
-    value: 'true'
+    value: '{{ s3_force_path_style | ternary("true", "false") }}'
+  - name: S3_ENDPOINT
+    value: '{{ aws_deployment | ternary("", s3_endpoint | default("")) }}'
+  - name: S3_ACCESS_KEY
+    value: "{{ ((s3_manage_secrets | string | lower) == 'true') | ternary(hive_s3_access_key | default(s3_lake_writer), lake_writer_role_arn | default('')) }}"
+  - name: S3_SECRET_KEY
+    value: "{{ ((s3_manage_secrets | string | lower) == 'true') | ternary(hive_s3_secret_key | default(s3_lake_writer_secret), '') }}"
   - name: REGION
     value: '{{ s3_region }}'
   - name: HIVE_METASTORE_USERS_IN_ADMIN_ROLE

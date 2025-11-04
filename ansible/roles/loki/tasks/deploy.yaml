@@ -7,6 +7,7 @@
     ns: '{{ loki_namespace }}'
 
 - name: Create S3 secret for Loki
+  when: s3_manage_secrets
   kubernetes.core.k8s:
     state: present
     definition:

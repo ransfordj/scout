@@ -24,6 +24,9 @@ ANSIBLE_CMD         := $(ANSIBLE_DEBUG_ENV) ansible-playbook -v -i $(INVENTORY_F
 all: deps
 	$(ANSIBLE_CMD) playbooks/main.yaml
 
+aws: deps
+	$(ANSIBLE_CMD) playbooks/aws.yaml
+
 echo:
 	echo "FQDN: $(FQDN)"
 	echo "Inventory: $(INVENTORY_FILE)"

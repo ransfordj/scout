@@ -2,8 +2,11 @@
 - name: Create storage directories for Lake
   hosts: minio_hosts
   gather_facts: false
+  vars: &lake_deployment_vars
+    deploy_minio: "{{ (deployment_type | trim | lower) != 'aws' }}"
   tasks:
     - name: Create storage directories
+      when: deploy_minio
       ansible.builtin.include_role:
         name: minio
         tasks_from: storage
@@ -11,8 +14,10 @@
 - name: Install components for Lake service
   hosts: server
   gather_facts: false
+  vars: *lake_deployment_vars
   environment:
     KUBECONFIG: '{{ kubeconfig_yaml }}'
   roles:
     - role: minio
+      when: deploy_minio
     - role: hive

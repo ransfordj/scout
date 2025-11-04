@@ -144,6 +144,7 @@ singleuser:
         subPath: spark-defaults.conf
   networkPolicy:
     egress:
+{% if not aws_deployment %}
       # Allow access to MinIO for data lake storage
       - to:
           - namespaceSelector:
@@ -151,6 +152,7 @@ singleuser:
                 kubernetes.io/metadata.name: '{{ minio_tenant_namespace }}'
         ports:
           - port: 9000
+{% endif %}
       # Allow access to Hive Metastore (readonly) for metadata queries
       # Only allow access to readonly metastore, not write metastore
       - to:

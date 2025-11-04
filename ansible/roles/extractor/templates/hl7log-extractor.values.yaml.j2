@@ -1,9 +1,20 @@
 image:
   repository: '{{ hl7log_extractor_image_repository }}'
   tag: '{{ hl7log_extractor_image_tag }}'
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+serviceAccount:
+  create: true
+  automount: true
+  name: ''
+  annotations:
+    eks.amazonaws.com/role-arn: {{ lake_writer_role_arn }}
+{% endif %}
+
 envFrom:
+{% if (s3_manage_secrets | string | lower) == 'true' %}
   - secretRef:
       name: s3-secret
+{% endif %}
   - configMapRef:
       name: s3-env
 env:
@@ -49,8 +60,10 @@ config:
         tags:
           namespace: '{{ extractor_namespace }}'
     s3:
-      endpoint: '{{ s3_endpoint }}'
       region: '{{ s3_region }}'
+{% if not aws_deployment %}
+      endpoint: '{{ s3_endpoint }}'
+{% endif %}
     spring:
       datasource:
         url: '{{ jdbc_url }}/{{ ingest_postgres_table_name }}'

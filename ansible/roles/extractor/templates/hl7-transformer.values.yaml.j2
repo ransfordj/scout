@@ -1,9 +1,20 @@
 image:
   repository: '{{ hl7_transformer_image_repository }}'
   tag: '{{ hl7_transformer_image_tag }}'
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+serviceAccount:
+  create: true
+  automount: true
+  name: ''
+  annotations:
+    eks.amazonaws.com/role-arn: {{ lake_writer_role_arn }}
+{% endif %}
+
 envFrom:
+{% if (s3_manage_secrets | string | lower) == 'true' %}
   - secretRef:
       name: s3-secret
+{% endif %}
   - configMapRef:
       name: s3-env
   - secretRef:

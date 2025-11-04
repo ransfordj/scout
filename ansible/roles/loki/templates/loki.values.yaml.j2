@@ -2,6 +2,19 @@ loki:
   auth_enabled: false
   commonConfig:
     replication_factor: 1
+  storage:
+    type: s3
+    bucketNames:
+      chunks: '{{ loki_chunks_bucket }}'
+      ruler: '{{ loki_ruler_bucket }}'
+      admin: '{{ loki_admin_bucket }}'
+    s3:
+{% if not aws_deployment %}
+      endpoint: '{{ s3_endpoint }}'
+{% endif %}
+      region: '{{ s3_region }}'
+      insecure: {{ s3_allow_http | ternary('true', 'false') }}
+      s3ForcePathStyle: {{ s3_force_path_style | ternary('true', 'false') }}
   schemaConfig:
     configs:
       - from: '2024-04-01'
@@ -19,20 +32,29 @@ loki:
     retention_period: 672h
   ruler:
     enable_api: true
-  storage:
-    type: s3
-    bucketNames:
-      chunks: loki-chunks
-      ruler: loki-ruler
-      admin: loki-admin
-    s3:
-      endpoint: 'minio.{{ minio_tenant_namespace }}.svc.cluster.local'
-      region: '{{ s3_region }}'
-      insecure: true
-      s3ForcePathStyle: true
+    storage:
+      type: s3
+      bucketNames:
+        chunks: '{{ loki_chunks_bucket }}'
+        ruler: '{{ loki_ruler_bucket }}'
+        admin: '{{ loki_admin_bucket }}'
+      s3:
+{% if not aws_deployment %}
+        endpoint: '{{ s3_endpoint }}'
+{% endif %}
+        region: '{{ s3_region }}'
+        insecure: {{ s3_allow_http | ternary('true', 'false') }}
+        s3ForcePathStyle: {{ s3_force_path_style | ternary('true', 'false') }}
 
 minio:
   enabled: false
+
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: {{ loki_writer_role_arn }}
+{% endif %}
 
 deploymentMode: SingleBinary
 
@@ -42,6 +64,14 @@ singleBinary:
     enabled: true 
     storageClass: '{{ use_custom_storage_classes | ternary(loki_storage_class, omit) }}'
   resources: {{ loki_resources | to_json }}
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+  serviceAccount:
+    create: true
+    name: ''
+    annotations:
+      eks.amazonaws.com/role-arn: '{{ loki_writer_role_arn }}'
+{% endif %}
+{% if (s3_manage_secrets | string | lower) == 'true' %}
   extraEnv:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:
@@ -53,6 +83,7 @@ singleBinary:
         secretKeyRef:
           name: loki-secrets
           key: AWS_SECRET_ACCESS_KEY
+{% endif %}
 
 # Zero out replica counts of other deployment modes
 backend:

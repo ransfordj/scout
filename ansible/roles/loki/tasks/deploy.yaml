@@ -14,6 +14,7 @@
     storage_definitions: '{{ loki_storage_definitions }}'
 
 - name: Create S3 secret for Loki
+  when: s3_manage_secrets
   kubernetes.core.k8s:
     state: present
     definition:

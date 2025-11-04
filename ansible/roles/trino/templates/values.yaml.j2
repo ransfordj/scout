@@ -41,8 +41,8 @@ catalogs:
     hive.metastore.uri={{ hive_metastore_endpoint }}
     delta.security=READ_ONLY
     fs.native-s3.enabled=true
-    s3.aws-access-key={{ s3_lake_writer }}
-    s3.aws-secret-key={{ s3_lake_writer_secret }}
     s3.region={{ s3_region }}
+{% if not aws_deployment %}
     s3.endpoint={{ s3_endpoint }}
-    s3.path-style-access=true
+{% endif %}
+    s3.path-style-access={{ s3_force_path_style | ternary('true','false') }}

@@ -144,14 +144,19 @@ db_host_ro: '{{ postgres_cluster_name }}-r.{{ postgres_cluster_namespace }}'
 db_port: 5432
 jdbc_url: 'jdbc:postgresql://{{ db_host }}:{{ db_port }}'
 use_custom_storage_classes: '{{ not aws_deployment }}'
+# External Keycloak URLs (for browser/external access)
 keycloak_base_url: 'https://{{ keycloak_subdomain }}.{{ server_hostname }}'
 keycloak_realm_url: '{{ keycloak_base_url }}/realms/{{ keycloak_realm_name }}'
+# Internal Keycloak URLs (for pod-to-pod communication within the cluster)
+keycloak_internal_base_url: 'http://keycloak-service.{{ keycloak_namespace }}.svc.cluster.local:8080'
+keycloak_internal_realm_url: '{{ keycloak_internal_base_url }}/realms/{{ keycloak_realm_name }}'
+# OIDC URLs - use internal URLs for AWS deployments (pods can't resolve ALB subdomains)
 keycloak_oidc_auth_url: '{{ keycloak_realm_url }}/protocol/openid-connect/auth'
-keycloak_oidc_token_url: '{{ keycloak_realm_url }}/protocol/openid-connect/token'
-keycloak_oidc_userinfo_url: '{{ keycloak_realm_url }}/protocol/openid-connect/userinfo'
-keycloak_oidc_certs_url: '{{ keycloak_realm_url }}/protocol/openid-connect/certs'
+keycloak_oidc_token_url: '{{ (keycloak_internal_realm_url if aws_deployment else keycloak_realm_url) }}/protocol/openid-connect/token'
+keycloak_oidc_userinfo_url: '{{ (keycloak_internal_realm_url if aws_deployment else keycloak_realm_url) }}/protocol/openid-connect/userinfo'
+keycloak_oidc_certs_url: '{{ (keycloak_internal_realm_url if aws_deployment else keycloak_realm_url) }}/protocol/openid-connect/certs'
 keycloak_oidc_logout_url: '{{ keycloak_realm_url }}/protocol/openid-connect/logout'
-keycloak_wellknown_url: '{{ keycloak_realm_url }}/.well-known/openid-configuration'
+keycloak_wellknown_url: '{{ (keycloak_internal_realm_url if aws_deployment else keycloak_realm_url) }}/.well-known/openid-configuration'
 oauth2_proxy_base_url: 'https://{{ oauth2_proxy_subdomain }}.{{ server_hostname }}'
 oauth2_proxy_callback_url: '{{ oauth2_proxy_base_url }}/oauth2/callback'
 oauth2_proxy_signout_url: '{{ oauth2_proxy_base_url }}/oauth2/sign_out'

@@ -138,8 +138,16 @@
       metadata:
         name: keycloak-ingress
         namespace: '{{ keycloak_namespace }}'
+        annotations: >-
+          {{
+            {
+              'alb.ingress.kubernetes.io/scheme': 'internet-facing',
+              'alb.ingress.kubernetes.io/target-type': 'ip',
+              'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP": 80}]'
+            } if aws_deployment else {}
+          }}
       spec:
-        ingressClassName: traefik
+        ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
         rules:
           - host: 'keycloak.{{ server_hostname }}'
             http:
@@ -163,3 +171,26 @@
       type: Ready
       status: 'True'
     wait_timeout: 300
+
+- name: Render Keycloak realm configuration
+  ansible.builtin.set_fact:
+    keycloak_realm_config_b64: "{{ lookup('template', 'scout-realm.json.j2') | b64encode }}"
+  run_once: true
+
+- name: Create Keycloak Config as a Secret
+  delegate_to: localhost
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    namespace: '{{ keycloak_namespace }}'
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: keycloak-config
+      data:
+        scout-realm.json: '{{ keycloak_realm_config_b64 }}'
+    kubeconfig: '{{ local_kubeconfig_yaml }}'
+
+- name: Configure Keycloak with keycloak-config-cli
+  ansible.builtin.include_tasks: configure.yaml

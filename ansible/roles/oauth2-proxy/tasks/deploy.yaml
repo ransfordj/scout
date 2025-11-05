@@ -57,6 +57,7 @@
     helm_chart_values: '{{ lookup("template", "values.yaml.j2") | from_yaml }}'
 
 - name: Install OAuth2 Proxy Auth Middleware
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -73,6 +74,7 @@
             - X-Auth-Request-Access-Token
 
 - name: Install OAuth2 Proxy Error Middleware
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:

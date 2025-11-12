@@ -32,6 +32,16 @@
             storage: '{{ jupyter_singleuser_storage_size }}'
         storageClassName: '{{ use_custom_storage_classes | ternary(jupyter_singleuser_storage_class, omit) }}'
 
+- name: Create lake-reader ServiceAccount for Jupyter
+  when: (s3_manage_secrets | string | lower) != 'true'
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: create_service_account
+  vars:
+    sa_name: lake-reader
+    sa_namespace: '{{ jupyter_namespace }}'
+    sa_role_arn: '{{ lake_reader_role_arn }}'
+
 - name: Setup Spark Defaults ConfigMap
   ansible.builtin.include_role:
     name: scout_common

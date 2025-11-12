@@ -60,6 +60,16 @@
         storageClassName: '{{ jupyter_singleuser_storage_class if jupyter_singleuser_storage_class else ("" if jupyter_singleuser_hostpath else omit) }}'
         volumeName: '{{ jupyter_singleuser_pv_name if (jupyter_singleuser_hostpath | default("")) else omit }}'
 
+- name: Create lake-reader ServiceAccount for Jupyter
+  when: (s3_manage_secrets | string | lower) != 'true'
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: create_service_account
+  vars:
+    sa_name: lake-reader
+    sa_namespace: '{{ jupyter_namespace }}'
+    sa_role_arn: '{{ lake_reader_role_arn }}'
+
 - name: Setup Spark Defaults ConfigMap
   ansible.builtin.include_role:
     name: scout_common

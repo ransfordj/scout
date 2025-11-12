@@ -82,6 +82,7 @@ scratch_bucket: scratch
 loki_chunks_bucket: loki-chunks
 loki_ruler_bucket: loki-ruler
 loki_admin_bucket: loki-admin
+spark_service_account_name: lake-writer
 
 # Deployment Type
 deployment_type: onprem
@@ -132,7 +133,7 @@ keycloak_subdomain: keycloak
 
 # Computed values (DO NOT CHANGE)
 aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
-s3_endpoint: "{{ aws_deployment | ternary('https://s3.' ~ s3_region ~ '.amazonaws.com', 'http://minio.' ~ minio_tenant_namespace) }}"
+s3_endpoint: "{{ aws_deployment | ternary('', 'http://minio.' ~ minio_tenant_namespace) }}"
 s3_force_path_style: '{{ not aws_deployment }}'
 s3_allow_http: '{{ not aws_deployment }}'
 s3_manage_secrets: '{{ not aws_deployment }}'

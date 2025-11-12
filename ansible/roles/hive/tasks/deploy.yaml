@@ -1,3 +1,13 @@
+# - name: Drop db
+#   ansible.builtin.include_role:
+#     name: scout_common
+#     tasks_from: execute_sql
+#   vars:
+#     sql_script: |-
+#         GRANT hive TO CURRENT_USER;
+#         DROP database hive;
+#         REVOKE hive FROM CURRENT_USER;
+
 - name: Initialize Hive Metastore database
   ansible.builtin.include_role:
     name: scout_common
@@ -15,6 +25,40 @@
       kind: Namespace
       metadata:
         name: '{{ hive_namespace }}'
+
+- name: Create Hadoop configuration ConfigMap for Hive
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: hive-hadoop-config
+        namespace: '{{ hive_namespace }}'
+      data:
+        core-site.xml: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+          <configuration>
+            <property>
+              <name>fs.s3a.aws.credentials.provider</name>
+              <value>com.amazonaws.auth.WebIdentityTokenCredentialsProvider</value>
+            </property>
+            <property>
+              <name>fs.s3a.endpoint.region</name>
+              <value>{{ s3_region }}</value>
+            </property>
+          </configuration>
+
+- name: Create lake-writer ServiceAccount for Hive
+  when: (s3_manage_secrets | string | lower) != 'true'
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: create_service_account
+  vars:
+    sa_name: lake-writer
+    sa_namespace: '{{ hive_namespace }}'
+    sa_role_arn: '{{ lake_writer_role_arn }}'
 
 # Create Kubernetes secret for write metastore
 - name: Create write metastore secret

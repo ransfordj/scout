@@ -45,9 +45,16 @@ hub:
       c.JupyterHub.template_paths = ['/usr/local/share/jupyterhub/custom-templates']
   config:
     Authenticator:
+{% if jupyter_oauth_enabled | default(true) %}
       auto_login: true
+{% else %}
+      auto_login: false
+{% endif %}
     JupyterHub:
+{% if jupyter_oauth_enabled | default(true) %}
       subdomain_host: 'jupyter.{{ server_hostname }}'
+{% endif %}
+{% if jupyter_oauth_enabled | default(true) %}
       authenticator_class: 'oauthenticator.generic.GenericOAuthenticator'
     GenericOAuthenticator:
       login_service: 'Keycloak'
@@ -71,6 +78,11 @@ hub:
         - 'jupyterhub-user'
       admin_groups:
         - 'jupyterhub-admin'
+{% else %}
+      authenticator_class: 'dummy'
+    DummyAuthenticator:
+      password: 'password'
+{% endif %}
     Spawner:
       http_timeout: 120
 
@@ -114,6 +126,9 @@ prePuller:
     enabled: {{ jupyter_prepuller_continuous | default(false) }}
 
 singleuser:
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+  serviceAccountName: 'lake-reader'
+{% endif %}
   image:
     name: '{{ jupyter_singleuser_image_name }}'
     tag: '{{ jupyter_singleuser_image_tag }}'

@@ -3,11 +3,9 @@ image:
   tag: '{{ hl7_transformer_image_tag }}'
 {% if (s3_manage_secrets | string | lower) != 'true' %}
 serviceAccount:
-  create: true
+  create: false
   automount: true
-  name: ''
-  annotations:
-    eks.amazonaws.com/role-arn: {{ lake_writer_role_arn }}
+  name: 'lake-writer'
 {% endif %}
 
 envFrom:

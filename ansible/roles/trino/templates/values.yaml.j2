@@ -6,7 +6,8 @@ server:
       # Cluster-wide max memory = workers × worker_heap × per_node_fraction
       maxMemory: "{{ trino_worker_max_heap | multiply_memory(trino_worker_count * trino_per_node_query_memory_fraction) }}B"
 
-{% if aws_deployment %}
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+# Service account configuration for IRSA
 serviceAccount:
   create: false
   name: 'lake-reader'

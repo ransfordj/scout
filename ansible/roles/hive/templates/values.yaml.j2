@@ -11,11 +11,9 @@ fullnameOverride: '{{ hive_fullname_override | default("") }}'
 
 {% if (s3_manage_secrets | string | lower) != 'true' %}
 serviceAccount:
-  create: {{ aws_deployment | ternary(true, false) }}
+  create: false
   automount: true
-  annotations:
-    eks.amazonaws.com/role-arn: {{ lake_reader_role_arn }}
-  name: ''
+  name: 'lake-writer'
 {% endif %}
 
 podAnnotations: {}
@@ -42,8 +40,14 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
 
-volumes: []
-volumeMounts: []
+volumes:
+  - name: hadoop-config
+    configMap:
+      name: hive-hadoop-config
+volumeMounts:
+  - name: hadoop-config
+    mountPath: /opt/hadoop-3.3.6/etc/hadoop/core-site.xml
+    subPath: core-site.xml
 
 nodeSelector: {}
 

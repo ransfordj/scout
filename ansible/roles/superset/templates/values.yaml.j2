@@ -74,6 +74,7 @@ configOverrides:
         "max_overflow": {{ superset_pool_max_overflow }},
         "pool_timeout": {{ superset_pool_timeout }},
     }
+{% if superset_oauth_enabled | default(true) %}
   enable_oauth: |
     from flask_appbuilder.security.manager import AUTH_OAUTH
     from flask_appbuilder.security.views import AuthOAuthView, expose
@@ -137,6 +138,7 @@ configOverrides:
             app.config.setdefault("AUTH_TYPE", AUTH_OAUTH)
             self.authoauthview = KeycloakOAuthView
     CUSTOM_SECURITY_MANAGER = KeycloakSecurityManager
+{% endif %}
 extraVolumes:
   - name: dashboard-config
     configMap:

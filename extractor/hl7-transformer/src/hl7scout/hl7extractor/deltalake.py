@@ -50,17 +50,30 @@ def parse_s3_zip_paths(hl7_file_paths: list[str]) -> dict[str, list[str]]:
 
 def download_and_extract_zips(zip_map, local_dir):
     """Download and extract zip files from S3 to a local directory."""
-    fs = S3FileSystem()
-    extracted_files = []
-    for s3_zip_path, hl7_files in zip_map.items():
-        local_zip = os.path.join(local_dir, os.path.basename(s3_zip_path))
-        fs.download(s3_zip_path, local_zip)
-        with zipfile.ZipFile(local_zip, "r") as z:
-            for hl7_file in hl7_files:
-                out_path = os.path.join(local_dir, hl7_file)
-                z.extract(hl7_file, local_dir)
-                extracted_files.append((out_path, f"{s3_zip_path}/{hl7_file}"))
-    return extracted_files
+    # Explicitly configure S3FileSystem for AWS with IRSA credentials
+    # Temporarily unset AWS_ENDPOINT_URL to prevent boto3 from using a specific regional endpoint
+    # which can cause issues with s3fs. boto3 will auto-detect the correct endpoint.
+    old_endpoint = os.environ.pop("AWS_ENDPOINT_URL", None)
+
+    try:
+        fs_config = {
+            "anon": False,  # Use IRSA credentials
+        }
+        fs = S3FileSystem(**fs_config)
+        extracted_files = []
+        for s3_zip_path, hl7_files in zip_map.items():
+            local_zip = os.path.join(local_dir, os.path.basename(s3_zip_path))
+            fs.download(s3_zip_path, local_zip)
+            with zipfile.ZipFile(local_zip, "r") as z:
+                for hl7_file in hl7_files:
+                    out_path = os.path.join(local_dir, hl7_file)
+                    z.extract(hl7_file, local_dir)
+                    extracted_files.append((out_path, f"{s3_zip_path}/{hl7_file}"))
+        return extracted_files
+    finally:
+        # Restore AWS_ENDPOINT_URL if it was set
+        if old_endpoint:
+            os.environ["AWS_ENDPOINT_URL"] = old_endpoint
 
 
 def extract_observation_id_suffix_content(column, suffix_list):
@@ -483,16 +496,32 @@ def import_hl7_files_to_deltalake(
 
         # Create table if it doesn't yet exist
         activity.heartbeat()
+        database_name = "default"
+        table_identifier = f"{database_name}.{report_table_name}"
+        database_location = spark.catalog.getDatabase(database_name).locationUri
+        table_location = database_location.rstrip("/") + f"/{report_table_name}"
+        table_location = table_location.replace("s3://", "s3a://", 1)
+
         activity.logger.info(
-            "Creating Delta Lake table %s if it does not exist", report_table_name
+            "Ensuring Delta Lake table %s exists at %s",
+            table_identifier,
+            table_location,
         )
-        dt = (
-            DeltaTable.createIfNotExists(spark)
-            .tableName(f"default.{report_table_name}")
-            .addColumns(df.schema)
-            .partitionedBy("year")
-            .execute()
-        )
+        if not DeltaTable.isDeltaTable(spark, table_location):
+            (
+                DeltaTable.createIfNotExists(spark)
+                .tableName(table_identifier)
+                .location(table_location)
+                .addColumns(df.schema)
+                .partitionedBy("year")
+                .execute()
+            )
+        else:
+            spark.sql(
+                f"CREATE TABLE IF NOT EXISTS {table_identifier} "
+                f"USING DELTA LOCATION '{table_location}'"
+            )
+        dt = DeltaTable.forPath(spark, table_location)
 
         activity.heartbeat()
         activity.logger.info("Writing data to Delta Lake table %s", report_table_name)

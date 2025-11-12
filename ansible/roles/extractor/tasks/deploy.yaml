@@ -18,6 +18,16 @@
     kind: Namespace
     state: present
 
+- name: Create lake-writer ServiceAccount for Extractor
+  when: (s3_manage_secrets | string | lower) != 'true'
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: create_service_account
+  vars:
+    sa_name: lake-writer
+    sa_namespace: '{{ extractor_namespace }}'
+    sa_role_arn: '{{ lake_writer_role_arn }}'
+
 - name: Create Postgres secret
   kubernetes.core.k8s:
     state: present

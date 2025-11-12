@@ -37,7 +37,8 @@
           'spark.driver.memory ' ~ (spark_memory | default('1G'))
         ]
         + (s3_manage_secrets
-          | ternary(['spark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider'], []))
+          | ternary(['spark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider'],
+                    ['spark.hadoop.fs.s3a.aws.credentials.provider com.amazonaws.auth.WebIdentityTokenCredentialsProvider']))
       }}
   kubernetes.core.k8s:
     state: present

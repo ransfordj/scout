@@ -34,6 +34,11 @@ loki:
 minio:
   enabled: false
 
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+serviceAccount:
+  create: false
+  name: loki-writer
+{% endif %}
 deploymentMode: SingleBinary
 
 singleBinary:

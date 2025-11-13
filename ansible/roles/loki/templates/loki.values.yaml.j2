@@ -51,9 +51,8 @@ minio:
 
 {% if (s3_manage_secrets | string | lower) != 'true' %}
 serviceAccount:
-  create: true
-  annotations:
-    eks.amazonaws.com/role-arn: {{ loki_writer_role_arn }}
+  create: false
+  name: loki-writer
 {% endif %}
 
 deploymentMode: SingleBinary
@@ -66,10 +65,8 @@ singleBinary:
   resources: {{ loki_resources | to_json }}
 {% if (s3_manage_secrets | string | lower) != 'true' %}
   serviceAccount:
-    create: true
-    name: ''
-    annotations:
-      eks.amazonaws.com/role-arn: '{{ loki_writer_role_arn }}'
+    create: false
+    name: loki-writer
 {% endif %}
 {% if (s3_manage_secrets | string | lower) == 'true' %}
   extraEnv:

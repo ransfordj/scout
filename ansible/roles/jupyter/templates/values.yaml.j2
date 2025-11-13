@@ -16,9 +16,11 @@ hub:
       scopes: [read:metrics]
       services: [prometheus]
   db:
-    pvc:
 {% if use_custom_storage_classes %}
+    pvc:
       storageClassName: '{{ jupyter_hub_storage_class }}'
+{% else %}
+    pvc: {}
 {% endif %}
   config:
     Authenticator:

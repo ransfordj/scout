@@ -49,6 +49,12 @@ singleBinary:
     storageClass: '{{ loki_storage_class }}'
 {% endif %}
   resources: {{ loki_resources | to_json }}
+{% if (s3_manage_secrets | string | lower) != 'true' %}
+  serviceAccount:
+    create: false
+    name: loki-writer
+{% endif %}
+  resources: {{ loki_resources | to_json }}
   extraEnv:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:

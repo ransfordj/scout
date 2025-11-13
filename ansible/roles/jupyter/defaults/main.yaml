@@ -20,8 +20,8 @@ jupyterhub_storage_class: ''
 jupyter_singleuser_storage_class: ''
 
 # Single-user image configuration
-jupyter_singleuser_image_name: ghcr.io/ransfordj/pyspark-notebook
-jupyter_singleuser_image_tag: 1.1.1
+jupyter_singleuser_image_name: ghcr.io/washu-tag/pyspark-notebook
+jupyter_singleuser_image_tag: 1.1.0
 
 # API tokens for JupyterHub services
 # REQUIRED: Must be set in inventory.yaml (use vault encryption)

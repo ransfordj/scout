@@ -27,6 +27,7 @@
         name: '{{ hive_namespace }}'
 
 - name: Create Hadoop configuration ConfigMap for Hive
+  when: (s3_manage_secrets | string | lower) != 'true'
   kubernetes.core.k8s:
     state: present
     definition:

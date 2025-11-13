@@ -60,8 +60,10 @@ deploymentMode: SingleBinary
 singleBinary:
   replicas: 1
   persistence:
-    enabled: true 
-    storageClass: '{{ use_custom_storage_classes | ternary(loki_storage_class, omit) }}'
+    enabled: true
+{% if use_custom_storage_classes %}
+    storageClass: '{{ loki_storage_class }}'
+{% endif %}
   resources: {{ loki_resources | to_json }}
 {% if (s3_manage_secrets | string | lower) != 'true' %}
   serviceAccount:

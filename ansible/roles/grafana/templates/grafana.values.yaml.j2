@@ -132,6 +132,3 @@ persistence:
   size: '{{ grafana_storage_size }}'
 
 resources: {{ grafana_resources | to_json }}
-
-livenessProbe:
-  initialDelaySeconds: 180

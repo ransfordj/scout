@@ -1,7 +1,10 @@
 grafana.ini:
   auth:
-    disable_login_form: {{ grafana_oidc_enabled | default(true) }}
-{% if grafana_oidc_enabled | default(true) %}
+    disable_login_form: false
+  auth.anonymous:
+    enabled: true
+    org_role: Admin
+{% if grafana_oidc_enabled | default(false) %}
   auth.generic_oauth:
     enabled: true
     name: Keycloak-OAuth
@@ -39,7 +42,7 @@ grafana.ini:
 {% endif %}
 
 extraSecretMounts:
-{% if grafana_oidc_enabled | default(true) %}
+{% if grafana_oidc_enabled | default(false) %}
   - name: keycloak-grafana-client-secret
     mountPath: /etc/secrets/keycloak-grafana
     secretName: keycloak-grafana-client-secret
@@ -64,7 +67,7 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
-{% if grafana_oidc_enabled | default(true) %}
+{% if grafana_oidc_enabled | default(false) %}
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/auth-type: oidc
     alb.ingress.kubernetes.io/auth-idp-oidc: '{"issuer":"{{ keycloak_realm_url }}","authorizationEndpoint":"{{ keycloak_oidc_auth_url }}","tokenEndpoint":"{{ keycloak_oidc_token_url }}","userInfoEndpoint":"{{ keycloak_oidc_userinfo_url }}","clientId":"{{ keycloak_grafana_client_id }}","clientSecret":"{{ keycloak_grafana_client_secret }}"}'
@@ -74,7 +77,7 @@ ingress:
     alb.ingress.kubernetes.io/auth-session-timeout: '3600'
 {% endif %}
 {% else %}
-{% if grafana_oidc_enabled | default(true) %}
+{% if grafana_oidc_enabled | default(false) %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >
       kube-system-oauth2-proxy-error@kubernetescrd,

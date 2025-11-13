@@ -3,10 +3,10 @@
 hl7log_extractor_timezone: '{{ timezone }}'
 
 # Custom extractor images (override from inventory for CI/CD)
-hl7log_extractor_image_repository: ghcr.io/ransfordj/hl7log-extractor
-hl7log_extractor_image_tag: latest
-hl7_transformer_image_repository: ghcr.io/ransfordj/hl7-transformer
-hl7_transformer_image_tag: 1.2.4
+hl7log_extractor_image_repository: ghcr.io/washu-tag/hl7log-extractor
+hl7log_extractor_image_tag: 1.1.0
+hl7_transformer_image_repository: ghcr.io/washu-tag/hl7-transformer
+hl7_transformer_image_tag: 1.1.0
 
 # Extractor configuration
 hl7log_extractor_timeout: 480
@@ -38,17 +38,3 @@ hl7logs_root_dir: /data
 
 # S3 paths
 hl7_path: 's3://{{ lake_bucket }}/hl7'
-
-# S3 Syncer Sidecar Configuration
-s3_sync_enabled: true
-s3_syncer_image_repository: ghcr.io/ransfordj/s3-syncer
-s3_syncer_image_tag: latest
-s3_sync_source_bucket: '{{ scratch_bucket }}'
-s3_sync_source_prefix: 7500k_scale_test_data
-s3_sync_interval_seconds: '60'
-s3_sync_delete: 'true'
-s3_sync_mode: continuous
-s3_syncer_memory_request: 128Mi
-s3_syncer_memory_limit: 256Mi
-s3_syncer_cpu_request: 50m
-s3_syncer_cpu_limit: 200m

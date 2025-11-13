@@ -36,7 +36,7 @@ loki:
 minio:
   enabled: false
 
-{% if aws_deployment %}
+{% if (s3_manage_secrets | string | lower) != 'true' %}
 serviceAccount:
   create: false
   name: loki-writer

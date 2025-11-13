@@ -49,4 +49,4 @@
         name: '{{ spark_defaults_configmap_name }}'
         namespace: '{{ spark_defaults_configmap_namespace }}'
       data:
-        spark-defaults.conf: "{{ spark_defaults_lines | join('\n') }}"
+        spark-defaults.conf: "{{ (spark_defaults_lines | join('\n')) ~ '\n' }}"

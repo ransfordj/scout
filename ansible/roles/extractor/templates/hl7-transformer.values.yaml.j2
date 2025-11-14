@@ -1,7 +1,7 @@
 image:
   repository: '{{ hl7_transformer_image_repository }}'
   tag: '{{ hl7_transformer_image_tag }}'
-{% if (s3_manage_secrets | string | lower) != 'true' %}
+{% if not s3_manage_secrets %}
 serviceAccount:
   create: false
   automount: true
@@ -9,7 +9,7 @@ serviceAccount:
 {% endif %}
 
 envFrom:
-{% if (s3_manage_secrets | string | lower) == 'true' %}
+{% if s3_manage_secrets %}
   - secretRef:
       name: s3-secret
 {% endif %}

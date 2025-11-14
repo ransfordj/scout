@@ -24,7 +24,7 @@
   when: groups['gpu_workers'] is defined and groups['gpu_workers'] | length > 0
 
 - name: Create lake-reader ServiceAccount for Jupyter
-  when: (s3_manage_secrets | string | lower) != 'true'
+  when: not s3_manage_secrets
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

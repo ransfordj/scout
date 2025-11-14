@@ -9,6 +9,7 @@
     db_owner_pass: '{{ superset_postgres_password }}'
 
 - name: Create Redis database for Superset cache
+  when: not aws_deployment
   ansible.builtin.include_role:
     name: redis
     tasks_from: create_database

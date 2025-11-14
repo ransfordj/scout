@@ -170,4 +170,5 @@
     helm_repo_url: '{{ grafana_helm_repo_url }}'
     helm_chart_version: '{{ grafana_helm_chart_version }}'
     helm_chart_create_namespace: false
+    helm_chart_atomic: false
     helm_chart_values: "{{ lookup('template', 'grafana.values.yaml.j2') | from_yaml }}"

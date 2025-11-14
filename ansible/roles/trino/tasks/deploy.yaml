@@ -4,7 +4,7 @@
 # as 30% of heap each, so we only need to set JVM heap and pod memory
 
 - name: Create lake-reader ServiceAccount for Trino
-  when: (s3_manage_secrets | string | lower) != 'true'
+  when: not s3_manage_secrets
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

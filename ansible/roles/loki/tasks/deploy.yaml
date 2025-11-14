@@ -14,7 +14,7 @@
     storage_definitions: '{{ loki_storage_definitions }}'
 
 - name: Create loki-writer ServiceAccount for Loki
-  when: (s3_manage_secrets | string | lower) != 'true'
+  when: not s3_manage_secrets
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

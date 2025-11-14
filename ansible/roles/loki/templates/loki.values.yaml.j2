@@ -49,7 +49,7 @@ loki:
 minio:
   enabled: false
 
-{% if (s3_manage_secrets | string | lower) != 'true' %}
+{% if not s3_manage_secrets %}
 serviceAccount:
   create: false
   name: loki-writer
@@ -65,12 +65,12 @@ singleBinary:
     storageClass: '{{ loki_storage_class }}'
 {% endif %}
   resources: {{ loki_resources | to_json }}
-{% if (s3_manage_secrets | string | lower) != 'true' %}
+{% if not s3_manage_secrets %}
   serviceAccount:
     create: false
     name: loki-writer
 {% endif %}
-{% if (s3_manage_secrets | string | lower) == 'true' %}
+{% if s3_manage_secrets %}
   extraEnv:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:

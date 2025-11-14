@@ -33,7 +33,7 @@
         storageClassName: '{{ use_custom_storage_classes | ternary(jupyter_singleuser_storage_class, omit) }}'
 
 - name: Create lake-reader ServiceAccount for Jupyter
-  when: (s3_manage_secrets | string | lower) != 'true'
+  when: not s3_manage_secrets
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

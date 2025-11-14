@@ -4,6 +4,13 @@ image:
 redis:
   # Disable embedded Redis - using centralized Redis Enterprise instead
   enabled: false
+{% if aws_deployment %}
+# Disable Celery workers for AWS deployments (no Redis)
+supersetWorker:
+  enabled: false
+supersetCeleryBeat:
+  enabled: false
+{% endif %}
 extraSecretEnv:
   SUPERSET_SECRET_KEY: "{{ superset_secret }}"
 ingress:

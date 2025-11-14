@@ -129,7 +129,7 @@ prePuller:
     enabled: {{ jupyter_prepuller_continuous | default(false) }}
 
 singleuser:
-{% if (s3_manage_secrets | string | lower) != 'true' %}
+{% if not s3_manage_secrets %}
   serviceAccountName: 'lake-reader'
 {% endif %}
   image:

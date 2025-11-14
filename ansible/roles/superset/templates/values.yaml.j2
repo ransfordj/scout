@@ -39,6 +39,7 @@ supersetNode:
     db_user: "{{ superset_postgres_user }}"
     db_pass: "{{ superset_postgres_password }}"
     db_name: "{{ superset_database }}"
+{% if not aws_deployment %}
     redis_host: "{{ superset_redis_database_name }}.{{ redis_namespace }}"
     redis_port: "{{ superset_redis_database_port }}"
     redis_password: "{{ superset_redis_password }}"
@@ -47,6 +48,7 @@ supersetNode:
     # https://redis.io/kb/doc/2d6sxrbhhj/does-redis-enterprise-support-logical-databases-using-the-select-command
     redis_cache_db: "0"
     redis_celery_db: "0"
+{% endif %}
   resources: {{ superset_resources | default({}) | to_json }}
 configOverrides:
   branding: |

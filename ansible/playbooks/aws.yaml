@@ -1,7 +1,4 @@
 ---
-- name: Deploy Auth services
-  import_playbook: auth.yaml
-
 - name: Deploy Lake services
   import_playbook: lake.yaml
 

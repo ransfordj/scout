@@ -34,7 +34,9 @@
         enabled: true
         className: traefik
         annotations:
-          traefik.ingress.kubernetes.io/router.middlewares: 'kube-system-oauth2-proxy-error@kubernetescrd, kube-system-oauth2-proxy-auth@kubernetescrd'
+          traefik.ingress.kubernetes.io/router.middlewares: >
+            kube-system-oauth2-proxy-error@kubernetescrd,
+            kube-system-oauth2-proxy-auth@kubernetescrd
         hosts:
           - host: '{{ server_hostname }}'
             paths:

@@ -59,23 +59,10 @@ server:
 web:
   ingress:
     enabled: true
-    ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+    ingressClassName: traefik
     hosts:
       - 'temporal.{{ server_hostname }}'
 {% if temporal_oidc_enabled %}
-{% if aws_deployment %}
-    annotations:
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-      alb.ingress.kubernetes.io/ssl-redirect: '443'
-      alb.ingress.kubernetes.io/auth-type: oidc
-      alb.ingress.kubernetes.io/auth-idp-oidc: '{"issuer":"{{ keycloak_realm_url }}","authorizationEndpoint":"{{ keycloak_oidc_auth_url }}","tokenEndpoint":"{{ keycloak_oidc_token_url }}","userInfoEndpoint":"{{ keycloak_oidc_userinfo_url }}","clientId":"{{ keycloak_temporal_client_id }}","clientSecret":"{{ keycloak_temporal_client_secret }}"}'
-      alb.ingress.kubernetes.io/auth-on-unauthenticated-request: authenticate
-      alb.ingress.kubernetes.io/auth-scope: 'openid microprofile-jwt'
-      alb.ingress.kubernetes.io/auth-session-cookie: AWSELBAuthSessionCookie
-      alb.ingress.kubernetes.io/auth-session-timeout: '3600'
-{% else %}
     annotations:
       traefik.ingress.kubernetes.io/router.middlewares: >
         kube-system-oauth2-proxy-error@kubernetescrd,
@@ -85,7 +72,7 @@ web:
     - name: TEMPORAL_AUTH_ENABLED
       value: 'true'
     - name: TEMPORAL_AUTH_PROVIDER_URL
-      value: '{{ keycloak_internal_realm_url if aws_deployment else keycloak_realm_url }}'
+      value: '{{ keycloak_realm_url }}'
     - name: TEMPORAL_AUTH_CLIENT_ID
       value: '{{ keycloak_temporal_client_id }}'
     - name: TEMPORAL_AUTH_CLIENT_SECRET

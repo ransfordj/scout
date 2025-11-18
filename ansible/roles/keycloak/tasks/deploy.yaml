@@ -138,16 +138,8 @@
       metadata:
         name: keycloak-ingress
         namespace: '{{ keycloak_namespace }}'
-        annotations: >-
-          {{
-            {
-              'alb.ingress.kubernetes.io/scheme': 'internet-facing',
-              'alb.ingress.kubernetes.io/target-type': 'ip',
-              'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP": 80}]'
-            } if aws_deployment else {}
-          }}
       spec:
-        ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+        ingressClassName: traefik
         rules:
           - host: 'keycloak.{{ server_hostname }}'
             http:

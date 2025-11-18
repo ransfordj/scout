@@ -28,26 +28,7 @@ minio_env_variables:
     value: slowest
 
 # Ingress configuration
-minio_ingress_config_aws:
-  console:
-    enabled: true
-    ingressClassName: alb
-    host: 'minio.{{ server_hostname }}'
-    path: '/'
-    pathType: Prefix
-    annotations:
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-      alb.ingress.kubernetes.io/ssl-redirect: '443'
-      alb.ingress.kubernetes.io/auth-type: oidc
-      alb.ingress.kubernetes.io/auth-idp-oidc: '{"issuer":"{{ keycloak_realm_url }}","authorizationEndpoint":"{{ keycloak_oidc_auth_url }}","tokenEndpoint":"{{ keycloak_oidc_token_url }}","userInfoEndpoint":"{{ keycloak_oidc_userinfo_url }}","clientId":"{{ keycloak_minio_client_id }}","clientSecret":"{{ keycloak_minio_client_secret }}"}'
-      alb.ingress.kubernetes.io/auth-on-unauthenticated-request: authenticate
-      alb.ingress.kubernetes.io/auth-scope: 'openid microprofile-jwt'
-      alb.ingress.kubernetes.io/auth-session-cookie: AWSELBAuthSessionCookie
-      alb.ingress.kubernetes.io/auth-session-timeout: '3600'
-
-minio_ingress_config_onprem:
+minio_ingress_config:
   console:
     enabled: true
     ingressClassName: traefik
@@ -58,8 +39,6 @@ minio_ingress_config_onprem:
       traefik.ingress.kubernetes.io/router.middlewares: >
         kube-system-oauth2-proxy-error@kubernetescrd,
         kube-system-oauth2-proxy-auth@kubernetescrd
-
-minio_ingress_config: '{{ minio_ingress_config_aws if aws_deployment else minio_ingress_config_onprem }}'
 
 # Bucket definitions
 minio_buckets:

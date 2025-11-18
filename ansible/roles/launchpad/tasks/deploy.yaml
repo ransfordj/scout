@@ -32,7 +32,7 @@
         oauth2ProxySignOutUrl: '{{ oauth2_proxy_signout_url }}'
       ingress:
         enabled: true
-        className: traefik
+        className: "{{ 'alb' if aws_deployment else 'traefik' }}"
         annotations:
           traefik.ingress.kubernetes.io/router.middlewares: >
             kube-system-oauth2-proxy-error@kubernetescrd,

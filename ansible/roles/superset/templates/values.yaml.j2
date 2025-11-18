@@ -18,6 +18,7 @@ ingress:
   ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
 {% if aws_deployment %}
   annotations:
+    alb.ingress.kubernetes.io/group.name: scout
     alb.ingress.kubernetes.io/target-type: ip
 {% else %}
   annotations:

@@ -64,6 +64,7 @@ web:
       - 'temporal.{{ server_hostname }}'
 {% if aws_deployment %}
     annotations:
+      alb.ingress.kubernetes.io/group.name: scout
       alb.ingress.kubernetes.io/target-type: ip
 {% elif temporal_oidc_enabled %}
     annotations:

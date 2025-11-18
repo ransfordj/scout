@@ -15,11 +15,13 @@ extraSecretEnv:
   SUPERSET_SECRET_KEY: "{{ superset_secret }}"
 ingress:
   enabled: true
-  ingressClassName: traefik
+  ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+{% if not aws_deployment %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >-
       kube-system-oauth2-proxy-error@kubernetescrd,
       kube-system-oauth2-proxy-auth@kubernetescrd
+{% endif %}
   path: /
   hosts:
     - "superset.{{ server_hostname }}"

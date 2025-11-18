@@ -54,11 +54,7 @@ singleBinary:
     create: false
     name: loki-writer
 {% endif %}
-<<<<<<< HEAD
-  resources: {{ loki_resources | to_json }}
-=======
 {% if s3_manage_secrets %}
->>>>>>> 9c1bde5 (Cleaning up s3_manage_secrets variable usage)
   extraEnv:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:
@@ -70,6 +66,7 @@ singleBinary:
         secretKeyRef:
           name: loki-secrets
           key: AWS_SECRET_ACCESS_KEY
+{% endif %}
 
 # Zero out replica counts of other deployment modes
 backend:

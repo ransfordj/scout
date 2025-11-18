@@ -65,7 +65,10 @@ extraSecretMounts:
 ingress:
   enabled: true
   ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
-{% if grafana_oidc_enabled | default(false) and not aws_deployment %}
+{% if aws_deployment %}
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
+{% elif grafana_oidc_enabled | default(false) %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >
       kube-system-oauth2-proxy-error@kubernetescrd,

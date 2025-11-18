@@ -31,15 +31,8 @@ sessionStorage:
       connectionUrl: "redis://{{ oauth2_proxy_redis_database_name }}.{{ redis_namespace }}:{{ oauth2_proxy_redis_database_port }}"
 ingress:
   enabled: true
-  className: "{{ 'alb' if aws_deployment else 'traefik' }}"
+  className: traefik
   path: /
-{% if aws_deployment %}
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/ssl-redirect: '443'
-{% endif %}
   hosts:
     - '{{ oauth2_proxy_subdomain }}.{{ server_hostname }}'
 extraVolumes:

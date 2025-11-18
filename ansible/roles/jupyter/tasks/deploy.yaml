@@ -38,7 +38,7 @@
         hostPath:
           path: '{{ jupyter_singleuser_hostpath }}'
           type: DirectoryOrCreate
-  when: jupyter_singleuser_hostpath | length > 0
+  when: jupyter_singleuser_hostpath | length > 0 and not aws_deployment
 
 - name: Create PersistentVolumeClaim for Jupyter single-user storage
   kubernetes.core.k8s:
@@ -51,7 +51,7 @@
         namespace: '{{ jupyter_namespace }}'
       spec:
         accessModes:
-          - ReadWriteMany
+          - "{{ 'ReadWriteOnce' if aws_deployment else 'ReadWriteMany' }}"
         resources:
           requests:
             storage: '{{ jupyter_singleuser_storage_size }}'

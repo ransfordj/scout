@@ -37,19 +37,7 @@
         name: hive-hadoop-config
         namespace: '{{ hive_namespace }}'
       data:
-        core-site.xml: |
-          <?xml version="1.0" encoding="UTF-8"?>
-          <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-          <configuration>
-            <property>
-              <name>fs.s3a.aws.credentials.provider</name>
-              <value>com.amazonaws.auth.WebIdentityTokenCredentialsProvider</value>
-            </property>
-            <property>
-              <name>fs.s3a.endpoint.region</name>
-              <value>{{ s3_region }}</value>
-            </property>
-          </configuration>
+        core-site.xml: "{{ lookup('template', 'core-site.xml.j2') }}"
 
 - name: Create lake-writer ServiceAccount for Hive
   when: not deploy_minio

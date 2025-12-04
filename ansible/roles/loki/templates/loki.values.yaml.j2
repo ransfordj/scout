@@ -49,11 +49,6 @@ singleBinary:
     storageClass: '{{ loki_storage_class }}'
 {% endif %}
   resources: {{ loki_resources | to_json }}
-{% if not deploy_minio %}
-  serviceAccount:
-    create: false
-    name: loki-writer
-{% endif %}
 {% if deploy_minio %}
   extraEnv:
     - name: AWS_ACCESS_KEY_ID
@@ -66,6 +61,10 @@ singleBinary:
         secretKeyRef:
           name: loki-secrets
           key: AWS_SECRET_ACCESS_KEY
+{% else %}
+  serviceAccount:
+    create: false
+    name: loki-writer
 {% endif %}
 
 # Zero out replica counts of other deployment modes

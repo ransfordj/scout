@@ -1,6 +1,13 @@
 ---
 # Deploy Trino using Helm
 
+- name: Create namespace
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: namespace
+  vars:
+    ns: '{{ trino_namespace }}'
+
 - name: Parse Helm values
   ansible.builtin.set_fact:
     trino_helm_chart_values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"

@@ -69,10 +69,10 @@
       metadata:
         name: s3-env
         namespace: '{{ extractor_namespace }}'
-      data: "{{ {'AWS_REGION': s3_region}
-        | combine(((s3_endpoint | default('')) | length > 0) | ternary({'AWS_ENDPOINT_URL': s3_endpoint}, {}))
-        | combine(deploy_minio | ternary({'AWS_ALLOW_HTTP': 'true'}, {}))
-        }}"
+      data:
+        AWS_REGION: '{{ s3_region }}'
+        AWS_ENDPOINT_URL: "{{ s3_endpoint if (s3_endpoint | default('')) else omit }}"
+        AWS_ALLOW_HTTP: "{{ 'true' if deploy_minio else omit }}"
 
 - name: Check modality mapping file exists
   ansible.builtin.stat:

@@ -116,7 +116,7 @@ prePuller:
     enabled: {{ jupyter_prepuller_continuous | default(false) }}
 
 singleuser:
-{% if not deploy_minio %}
+{% if aws_deployment %}
   serviceAccountName: 'lake-reader'
 {% endif %}
   image:

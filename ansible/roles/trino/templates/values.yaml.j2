@@ -6,7 +6,7 @@ server:
       # Cluster-wide max memory = workers × worker_heap × per_node_fraction
       maxMemory: "{{ trino_worker_max_heap | multiply_memory(trino_worker_count * trino_per_node_query_memory_fraction) }}B"
 
-{% if not deploy_minio %}
+{% if aws_deployment %}
 # Service account configuration for IRSA
 serviceAccount:
   create: false
@@ -49,9 +49,9 @@ catalogs:
     delta.security=READ_ONLY
     fs.native-s3.enabled=true
     s3.region={{ s3_region }}
-{% if deploy_minio %}
+{% if not aws_deployment %}
     s3.aws-access-key={{ s3_lake_reader }}
     s3.aws-secret-key={{ s3_lake_reader_secret }}
     s3.endpoint={{ s3_endpoint }}
 {% endif %}
-    s3.path-style-access={{ deploy_minio | ternary('true','false') }}
+    s3.path-style-access={{ aws_deployment | ternary('false','true') }}

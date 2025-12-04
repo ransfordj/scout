@@ -24,7 +24,7 @@
   when: groups['gpu_workers'] is defined and groups['gpu_workers'] | length > 0
 
 - name: Create lake-reader ServiceAccount for Jupyter
-  when: not deploy_minio
+  when: aws_deployment
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

@@ -27,7 +27,7 @@
         name: '{{ hive_namespace }}'
 
 - name: Create Hadoop configuration ConfigMap for Hive
-  when: not deploy_minio
+  when: aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -40,7 +40,7 @@
         core-site.xml: "{{ lookup('template', 'core-site.xml.j2') }}"
 
 - name: Create lake-writer ServiceAccount for Hive
-  when: not deploy_minio
+  when: aws_deployment
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

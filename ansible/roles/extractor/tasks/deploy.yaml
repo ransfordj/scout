@@ -19,7 +19,7 @@
     state: present
 
 - name: Create lake-writer ServiceAccount for Extractor
-  when: not deploy_minio
+  when: aws_deployment
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account
@@ -46,7 +46,7 @@
         DB_PASSWORD: '{{ postgres_password }}'
 
 - name: Create S3 secret
-  when: deploy_minio
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -72,7 +72,7 @@
       data:
         AWS_REGION: '{{ s3_region }}'
         AWS_ENDPOINT_URL: "{{ s3_endpoint if (s3_endpoint | default('')) else omit }}"
-        AWS_ALLOW_HTTP: "{{ 'true' if deploy_minio else omit }}"
+        AWS_ALLOW_HTTP: "{{ 'true' if not aws_deployment else omit }}"
 
 - name: Check modality mapping file exists
   ansible.builtin.stat:

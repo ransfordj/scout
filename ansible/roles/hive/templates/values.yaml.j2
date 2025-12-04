@@ -9,7 +9,7 @@ imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: '{{ hive_fullname_override | default("") }}'
 
-{% if not deploy_minio %}
+{% if aws_deployment %}
 serviceAccount:
   create: false
   automount: true
@@ -40,7 +40,7 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
 
-{% if not deploy_minio %}
+{% if aws_deployment %}
 volumes:
   - name: hadoop-config
     configMap:
@@ -67,11 +67,11 @@ env:
   - name: HIVE_METASTORE_WAREHOUSE_DIR
     value: '{{ delta_lake_path }}'
   - name: S3_PATH_STYLE_ACCESS
-    value: '{{ deploy_minio | ternary("true", "false") }}'
+    value: '{{ aws_deployment | ternary("false", "true") }}'
   - name: S3_ENDPOINT
     value: '{{ aws_deployment | ternary("", s3_endpoint | default("")) }}'
   - name: S3_ACCESS_KEY
-    value: "{{ hive_s3_access_key if deploy_minio else '' }}"
+    value: "{{ hive_s3_access_key if not aws_deployment else '' }}"
   - name: REGION
     value: '{{ s3_region }}'
   - name: HIVE_METASTORE_USERS_IN_ADMIN_ROLE

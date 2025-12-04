@@ -166,9 +166,7 @@ enable_chat: false
 # Computed values (DO NOT CHANGE)
 aws_deployment: "{{ deployment_type | trim | lower == 'aws' }}"
 s3_endpoint: "{{ aws_deployment | ternary('', 'http://minio.' ~ minio_tenant_namespace) }}"
-s3_force_path_style: '{{ not aws_deployment }}'
-s3_allow_http: '{{ not aws_deployment }}'
-s3_manage_secrets: '{{ not aws_deployment }}'
+deploy_minio: '{{ not aws_deployment }}'
 hive_metastore_endpoint: 'thrift://{{ hive_metastore_instance }}.{{ hive_namespace }}:9083'
 hive_metastore_endpoint_readonly: 'thrift://{{ hive_metastore_instance_readonly }}.{{ hive_namespace }}:9083'
 server_hostname: '{{ hostvars[groups["server"][0]].external_url | default(groups["server"][0]) }}'

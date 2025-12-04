@@ -13,7 +13,7 @@
     trino_helm_chart_values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
 
 - name: Create lake-reader ServiceAccount for Trino
-  when: not s3_manage_secrets
+  when: not deploy_minio
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

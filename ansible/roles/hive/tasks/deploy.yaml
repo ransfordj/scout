@@ -27,7 +27,7 @@
         name: '{{ hive_namespace }}'
 
 - name: Create Hadoop configuration ConfigMap for Hive
-  when: not s3_manage_secrets
+  when: not deploy_minio
   kubernetes.core.k8s:
     state: present
     definition:
@@ -52,7 +52,7 @@
           </configuration>
 
 - name: Create lake-writer ServiceAccount for Hive
-  when: not s3_manage_secrets
+  when: not deploy_minio
   ansible.builtin.include_role:
     name: scout_common
     tasks_from: create_service_account

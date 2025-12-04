@@ -62,7 +62,8 @@
     - name: Create ConfigMap for each Grafana alert
       vars:
         alert_filename: '{{ item.path | basename | regex_replace(".json.j2$", ".json") }}'
-        alert_content: '{{ lookup("template", item.path) }}'
+        alert_content: '{{ lookup("template", item.path) | to_json }}'
+        configmap_data: '{{ {alert_filename: alert_content} }}'
       kubernetes.core.k8s:
         state: present
         definition:
@@ -73,7 +74,7 @@
             namespace: '{{ grafana_namespace }}'
             labels:
               grafana_alert: '1'
-          data: '{{ {alert_filename: alert_content} }}'
+          data: '{{ configmap_data }}'
       loop: '{{ alert_templates.files }}'
       loop_control:
         label: '{{ item.path | basename }}'

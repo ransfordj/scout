@@ -15,16 +15,10 @@ hub:
       description: 'Read JupyterHub metrics'
       scopes: [read:metrics]
       services: [prometheus]
-{% if jupyterhub_storage_class is defined and jupyterhub_storage_class %}
   db:
-{% if use_custom_storage_classes %}
     pvc:
-      storageClassName: '{{ jupyterhub_storage_class }}'
+      storageClassName: "{{ jupyterhub_storage_class if use_custom_storage_classes else omit }}"
       storage: '{{ jupyter_hub_storage_size }}'
-{% else %}
-    pvc: {}
-{% endif %}
-{% endif %}
   extraVolumes:
     - name: scout-logo
       configMap:

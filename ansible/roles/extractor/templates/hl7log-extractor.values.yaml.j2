@@ -1,7 +1,7 @@
 image:
   repository: '{{ hl7log_extractor_image_repository }}'
   tag: '{{ hl7log_extractor_image_tag }}'
-{% if not s3_manage_secrets %}
+{% if not deploy_minio %}
 serviceAccount:
   create: false
   automount: true
@@ -9,7 +9,7 @@ serviceAccount:
 {% endif %}
 
 envFrom:
-{% if s3_manage_secrets %}
+{% if deploy_minio %}
   - secretRef:
       name: s3-secret
 {% endif %}

@@ -17,7 +17,9 @@ hub:
       services: [prometheus]
   db:
     pvc:
-      storageClassName: "{{ jupyterhub_storage_class if use_custom_storage_classes else omit }}"
+{% if jupyterhub_storage_class is defined and jupyterhub_storage_class %}
+          storageClassName: '{{ jupyterhub_storage_class }}'
+{% endif %}
       storage: '{{ jupyter_hub_storage_size }}'
   extraVolumes:
     - name: scout-logo

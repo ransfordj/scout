@@ -63,11 +63,11 @@ env:
   - name: HIVE_METASTORE_WAREHOUSE_DIR
     value: '{{ delta_lake_path }}'
   - name: S3_PATH_STYLE_ACCESS
-    value: "{{ 'true' if not aws_deployment else 'false' }}"
+    value: "{{ 'false' if aws_deployment else 'true' }}"
   - name: S3_ENDPOINT
-    value: "{{ s3_endpoint if not aws_deployment else '' }}"
+    value: "{{ '' if aws_deployment else s3_endpoint | default('') }}"
   - name: S3_ACCESS_KEY
-    value: "{{ hive_s3_access_key if not aws_deployment else '' }}"
+    value: "{{ '' if aws_deployment else hive_s3_access_key }}"
   - name: REGION
     value: '{{ s3_region }}'
   - name: HIVE_METASTORE_USERS_IN_ADMIN_ROLE

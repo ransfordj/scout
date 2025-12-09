@@ -30,6 +30,7 @@ public class FileHandlerImpl implements FileHandler {
     private static final Logger logger = Workflow.getLogger(FileHandlerImpl.class);
 
     private static final String S3 = "s3";
+    private static final String LEADING_SLASH_REGEX = "^/+";
     private final S3Client s3Client;
 
     /**
@@ -61,7 +62,7 @@ public class FileHandlerImpl implements FileHandler {
             throw new UnsupportedOperationException("Unsupported destination scheme " + destination.getScheme());
         }
         String bucket = destination.getHost();
-        String key = destination.getPath();
+        String key = normalizeS3Key(destination.getPath());
         logger.debug("WorkflowId {} ActivityId {} - Uploading bytes to S3 bucket {} key {}", activityInfo.getWorkflowId(), activityInfo.getActivityId(),
             bucket, key);
         s3Client.putObject(builder -> builder.bucket(bucket).key(key), RequestBody.fromBytes(data));
@@ -96,7 +97,9 @@ public class FileHandlerImpl implements FileHandler {
         if (S3.equals(destination.getScheme())) {
             // Upload to S3
             String bucket = destination.getHost();
-            String key = destination.getPath() + "/" + relativeFilePath;
+            String baseKey = normalizeS3Key(destination.getPath());
+            String combinedKey = baseKey.isEmpty() ? relativeFilePath.toString() : baseKey + "/" + relativeFilePath;
+            String key = normalizeS3Key(combinedKey);
             logger.debug("Uploading file {} to S3 bucket {} key {}", absoluteFilePath, bucket, key);
             s3Client.putObject(builder -> builder.bucket(bucket).key(key), absoluteFilePath);
             outputPath = destination + "/" + relativeFilePath; // URI#resolve strips trailing path from destination;
@@ -136,7 +139,7 @@ public class FileHandlerImpl implements FileHandler {
         if (S3.equals(source.getScheme())) {
             // Download from S3
             String bucket = source.getHost();
-            String key = source.getPath();
+            String key = normalizeS3Key(source.getPath());
             if (destination.toFile().isDirectory()) {
                 destination = destination.resolve(Path.of(key).getFileName());
             }
@@ -162,7 +165,7 @@ public class FileHandlerImpl implements FileHandler {
         ActivityInfo activityInfo = Activity.getExecutionContext().getInfo();
         if (S3.equals(source.getScheme())) {
             String bucket = source.getHost();
-            String key = source.getPath();
+            String key = normalizeS3Key(source.getPath());
             logger.debug("WorkflowId {} ActivityId {} - Reading file from S3 bucket {} key {}", activityInfo.getWorkflowId(),
                 activityInfo.getActivityId(), bucket, key);
 
@@ -181,6 +184,7 @@ public class FileHandlerImpl implements FileHandler {
         String bucket = uris.getFirst().getHost();
         List<ObjectIdentifier> keys = uris.stream()
             .map(URI::getPath)
+            .map(FileHandlerImpl::normalizeS3Key)
             .map(key -> ObjectIdentifier.builder().key(key).build())
             .toList();
         logger.debug("Deleting {} keys from S3 bucket {}", keys.size(), bucket);
@@ -194,7 +198,7 @@ public class FileHandlerImpl implements FileHandler {
             throw new UnsupportedOperationException("Unsupported destination scheme " + scheme);
         }
         String bucket = source.getHost();
-        String prefix = source.getPath().replaceFirst("^/", "");
+        String prefix = normalizeS3Key(source.getPath());
         logger.info("Listing files in S3 bucket {} with prefix {}", bucket, prefix);
         try (Stream<S3Object> paths = s3Client.listObjectsV2Paginator(builder -> builder.bucket(bucket).prefix(prefix))
             .contents()
@@ -206,5 +210,12 @@ public class FileHandlerImpl implements FileHandler {
         } catch (Exception e) {
             throw ApplicationFailure.newFailureWithCause("Error listing files in S3", "type", e);
         }
+    }
+
+    private static String normalizeS3Key(String rawKey) {
+        if (rawKey == null || rawKey.isEmpty()) {
+            return "";
+        }
+        return rawKey.replaceFirst(LEADING_SLASH_REGEX, "");
     }
 }

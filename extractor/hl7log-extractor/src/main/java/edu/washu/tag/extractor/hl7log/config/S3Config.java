@@ -10,6 +10,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
@@ -19,7 +20,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 @Configuration
 public class S3Config {
 
-    @Value("${s3.endpoint}")
+    @Value("${s3.endpoint:#{null}}")
     private String endpoint;
 
     @Value("${s3.region}")
@@ -35,16 +36,21 @@ public class S3Config {
      */
     @Bean
     public S3Client s3Client() {
-        return S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
+        S3ClientBuilder builder = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(true)
-                        .build())
                 .httpClientBuilder(ApacheHttpClient.builder()
                         .maxConnections(ObjectUtils.defaultIfNull(maxConnections, 50))
-                        .connectionTimeout(Duration.ofSeconds(5)))
-                .build();
+                        .connectionTimeout(Duration.ofSeconds(5)));
+
+        // Only set endpoint override and path-style access for MinIO (not AWS)
+        if (endpoint != null && !endpoint.isEmpty()) {
+            builder.endpointOverride(URI.create(endpoint))
+                   .serviceConfiguration(S3Configuration.builder()
+                           .pathStyleAccessEnabled(true)
+                           .build());
+        }
+
+        return builder.build();
     }
 }

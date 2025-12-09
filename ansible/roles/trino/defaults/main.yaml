@@ -6,6 +6,7 @@
 trino_helm_repo_name: trino
 trino_helm_repo_url: https://trinodb.github.io/charts
 trino_helm_chart_name: trino
+trino_helm_timeout: '15m'
 
 # Resource sizing - users should override these in inventory
 # Worker count

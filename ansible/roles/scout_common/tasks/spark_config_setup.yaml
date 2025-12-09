@@ -22,4 +22,4 @@
         name: '{{ spark_defaults_configmap_name }}'
         namespace: '{{ spark_defaults_configmap_namespace }}'
       data:
-        spark-defaults.conf: '{{ spark_defaults_conf_content }}'
+        spark-defaults.conf: "{{ lookup('template', 'spark-defaults.conf.j2') }}"

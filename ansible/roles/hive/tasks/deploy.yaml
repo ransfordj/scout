@@ -1,3 +1,13 @@
+# - name: Drop db
+#   ansible.builtin.include_role:
+#     name: scout_common
+#     tasks_from: execute_sql
+#   vars:
+#     sql_script: |-
+#         GRANT hive TO CURRENT_USER;
+#         DROP database hive;
+#         REVOKE hive FROM CURRENT_USER;
+
 - name: Initialize Hive Metastore database
   ansible.builtin.include_role:
     name: scout_common

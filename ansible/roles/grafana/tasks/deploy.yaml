@@ -62,7 +62,8 @@
     - name: Create ConfigMap for each Grafana alert
       vars:
         alert_filename: '{{ item.path | basename | regex_replace(".json.j2$", ".json") }}'
-        alert_content: '{{ lookup("template", item.path) }}'
+        alert_content: '{{ lookup("template", item.path) | to_json }}'
+        configmap_data: '{{ {alert_filename: alert_content} }}'
       kubernetes.core.k8s:
         state: present
         definition:
@@ -73,7 +74,7 @@
             namespace: '{{ grafana_namespace }}'
             labels:
               grafana_alert: '1'
-          data: '{{ {alert_filename: alert_content} }}'
+          data: '{{ configmap_data }}'
       loop: '{{ alert_templates.files }}'
       loop_control:
         label: '{{ item.path | basename }}'
@@ -141,6 +142,7 @@
           type: Opaque
           stringData:
             client-secret: '{{ keycloak_grafana_client_secret }}'
+      when: grafana_oidc_enabled | default(true)
 
     - name: Create postgres datasource secret
       kubernetes.core.k8s:
@@ -169,4 +171,5 @@
     helm_repo_url: '{{ grafana_helm_repo_url }}'
     helm_chart_version: '{{ grafana_helm_chart_version }}'
     helm_chart_create_namespace: false
+    helm_chart_atomic: false
     helm_chart_values: "{{ lookup('template', 'grafana.values.yaml.j2') | from_yaml }}"

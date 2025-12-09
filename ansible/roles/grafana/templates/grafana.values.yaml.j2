@@ -1,6 +1,10 @@
 grafana.ini:
   auth:
-    disable_login_form: true
+    disable_login_form: false
+  auth.anonymous:
+    enabled: true
+    org_role: Admin
+{% if grafana_oidc_enabled | default(false) %}
   auth.generic_oauth:
     enabled: true
     name: Keycloak-OAuth
@@ -19,6 +23,7 @@ grafana.ini:
     role_attribute_strict: true
     allow_assign_grafana_admin: true
     signout_redirect_url: '{{ oauth2_proxy_signout_url }}'
+{% endif %}
   server:
     root_url: 'https://grafana.{{ server_hostname }}'
   metrics:
@@ -40,12 +45,14 @@ env:
   GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: true
 
 extraSecretMounts:
+{% if grafana_oidc_enabled | default(false) %}
   - name: keycloak-grafana-client-secret
     mountPath: /etc/secrets/keycloak-grafana
     secretName: keycloak-grafana-client-secret
     readOnly: true
     optional: false
     subPath: ""
+{% endif %}
 {% if grafana_alert_contact_point == 'email' %}
   - name: smtp-grafana
     mountPath: /etc/secrets/smtp-grafana
@@ -57,11 +64,17 @@ extraSecretMounts:
 
 ingress:
   enabled: true
-  ingressClassName: traefik
+  ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+{% if aws_deployment %}
+  annotations:
+    alb.ingress.kubernetes.io/group.name: scout
+    alb.ingress.kubernetes.io/target-type: ip
+{% elif grafana_oidc_enabled | default(false) %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >
       kube-system-oauth2-proxy-error@kubernetescrd,
       kube-system-oauth2-proxy-auth@kubernetescrd
+{% endif %}
   hosts:
     - 'grafana.{{ server_hostname }}'
 
@@ -107,6 +120,3 @@ persistence:
   size: '{{ grafana_storage_size }}'
 
 resources: {{ grafana_resources | to_json }}
-
-livenessProbe:
-  initialDelaySeconds: 180

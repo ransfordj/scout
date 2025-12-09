@@ -18,7 +18,7 @@ hub:
   db:
     pvc:
 {% if jupyterhub_storage_class is defined and jupyterhub_storage_class %}
-      storageClassName: '{{ jupyterhub_storage_class }}'
+          storageClassName: '{{ jupyterhub_storage_class }}'
 {% endif %}
       storage: '{{ jupyter_hub_storage_size }}'
   extraVolumes:
@@ -45,9 +45,16 @@ hub:
       c.JupyterHub.template_paths = ['/usr/local/share/jupyterhub/custom-templates']
   config:
     Authenticator:
+{% if jupyter_oauth_enabled | default(true) %}
       auto_login: true
+{% else %}
+      auto_login: false
+{% endif %}
     JupyterHub:
+{% if jupyter_oauth_enabled | default(true) %}
       subdomain_host: 'jupyter.{{ server_hostname }}'
+{% endif %}
+{% if jupyter_oauth_enabled | default(true) %}
       authenticator_class: 'oauthenticator.generic.GenericOAuthenticator'
     GenericOAuthenticator:
       login_service: 'Keycloak'
@@ -71,6 +78,11 @@ hub:
         - 'jupyterhub-user'
       admin_groups:
         - 'jupyterhub-admin'
+{% else %}
+      authenticator_class: 'dummy'
+    DummyAuthenticator:
+      password: 'password'
+{% endif %}
     Spawner:
       http_timeout: 120
 
@@ -84,11 +96,17 @@ cull:
 
 ingress:
   enabled: true
-  ingressClassName: traefik
+  ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+{% if aws_deployment %}
+  annotations:
+    alb.ingress.kubernetes.io/group.name: scout
+    alb.ingress.kubernetes.io/target-type: ip
+{% else %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >
       kube-system-oauth2-proxy-error@kubernetescrd,
       kube-system-oauth2-proxy-auth@kubernetescrd
+{% endif %}
   hosts:
     - 'jupyter.{{ server_hostname }}'
     - '*.jupyter.{{ server_hostname }}'

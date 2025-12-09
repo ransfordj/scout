@@ -59,14 +59,20 @@ server:
 web:
   ingress:
     enabled: true
-    ingressClassName: traefik
+    className: "{{ 'alb' if aws_deployment else 'traefik' }}"
     hosts:
       - 'temporal.{{ server_hostname }}'
-{% if temporal_oidc_enabled %}
+{% if aws_deployment %}
+    annotations:
+      alb.ingress.kubernetes.io/group.name: scout
+      alb.ingress.kubernetes.io/target-type: ip
+{% elif temporal_oidc_enabled %}
     annotations:
       traefik.ingress.kubernetes.io/router.middlewares: >
         kube-system-oauth2-proxy-error@kubernetescrd,
         kube-system-oauth2-proxy-auth@kubernetescrd
+{% endif %}
+{% if temporal_oidc_enabled %}
   additionalEnv:
     - name: TEMPORAL_AUTH_ENABLED
       value: 'true'

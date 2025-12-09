@@ -4,15 +4,28 @@ image:
 redis:
   # Disable embedded Redis - using centralized Redis Enterprise instead
   enabled: false
+{% if aws_deployment %}
+# Disable Celery workers for AWS deployments (no Redis)
+supersetWorker:
+  enabled: false
+supersetCeleryBeat:
+  enabled: false
+{% endif %}
 extraSecretEnv:
   SUPERSET_SECRET_KEY: "{{ superset_secret }}"
 ingress:
   enabled: true
-  ingressClassName: traefik
+  ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
+{% if aws_deployment %}
+  annotations:
+    alb.ingress.kubernetes.io/group.name: scout
+    alb.ingress.kubernetes.io/target-type: ip
+{% else %}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >-
       kube-system-oauth2-proxy-error@kubernetescrd,
       kube-system-oauth2-proxy-auth@kubernetescrd
+{% endif %}
   path: /
   hosts:
     - "superset.{{ server_hostname }}"
@@ -25,6 +38,7 @@ supersetNode:
     db_user: "{{ superset_postgres_user }}"
     db_pass: "{{ superset_postgres_password }}"
     db_name: "{{ superset_database }}"
+{% if not aws_deployment %}
     redis_host: "{{ superset_redis_database_name }}.{{ redis_namespace }}"
     redis_port: "{{ superset_redis_database_port }}"
     redis_password: "{{ superset_redis_password }}"
@@ -33,6 +47,7 @@ supersetNode:
     # https://redis.io/kb/doc/2d6sxrbhhj/does-redis-enterprise-support-logical-databases-using-the-select-command
     redis_cache_db: "0"
     redis_celery_db: "0"
+{% endif %}
   resources: {{ superset_resources | default({}) | to_json }}
 configOverrides:
   branding: |
@@ -60,6 +75,7 @@ configOverrides:
         "max_overflow": {{ superset_pool_max_overflow }},
         "pool_timeout": {{ superset_pool_timeout }},
     }
+{% if superset_oauth_enabled | default(true) %}
   enable_oauth: |
     from flask_appbuilder.security.manager import AUTH_OAUTH
     from flask_appbuilder.security.views import AuthOAuthView, expose
@@ -123,6 +139,7 @@ configOverrides:
             app.config.setdefault("AUTH_TYPE", AUTH_OAUTH)
             self.authoauthview = KeycloakOAuthView
     CUSTOM_SECURITY_MANAGER = KeycloakSecurityManager
+{% endif %}
 extraVolumes:
   - name: dashboard-config
     configMap:

@@ -18,6 +18,16 @@
     kind: Namespace
     state: present
 
+- name: Create lake-writer ServiceAccount for Extractor
+  when: aws_deployment
+  ansible.builtin.include_role:
+    name: scout_common
+    tasks_from: create_service_account
+  vars:
+    sa_name: '{{ lake_writer_service_account_name }}'
+    sa_namespace: '{{ extractor_namespace }}'
+    sa_role_arn: '{{ lake_writer_role_arn }}'
+
 - name: Create Postgres secret
   kubernetes.core.k8s:
     state: present
@@ -36,6 +46,7 @@
         DB_PASSWORD: '{{ postgres_password }}'
 
 - name: Create S3 secret
+  when: not aws_deployment
   kubernetes.core.k8s:
     state: present
     definition:
@@ -59,9 +70,9 @@
         name: s3-env
         namespace: '{{ extractor_namespace }}'
       data:
-        AWS_ENDPOINT_URL: '{{ s3_endpoint }}'
-        AWS_ALLOW_HTTP: 'true'
         AWS_REGION: '{{ s3_region }}'
+        AWS_ENDPOINT_URL: "{{ s3_endpoint if (s3_endpoint | default('')) else omit }}"
+        AWS_ALLOW_HTTP: "{{ 'true' if not aws_deployment else omit }}"
 
 - name: Check modality mapping file exists
   ansible.builtin.stat:

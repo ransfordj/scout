@@ -63,6 +63,10 @@ singleBinary:
         secretKeyRef:
           name: loki-secrets
           key: AWS_SECRET_ACCESS_KEY
+{% else %}
+  serviceAccount:
+    create: false
+    name: '{{ loki_writer_service_account_name }}'
 {% endif %}
 
 # Zero out replica counts of other deployment modes

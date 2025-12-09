@@ -1,9 +1,18 @@
 image:
   repository: '{{ hl7_transformer_image_repository }}'
   tag: '{{ hl7_transformer_image_tag }}'
+{% if aws_deployment %}
+serviceAccount:
+  create: false
+  automount: true
+  name: '{{ lake_writer_service_account_name }}'
+{% endif %}
+
 envFrom:
+{% if not aws_deployment %}
   - secretRef:
       name: s3-secret
+{% endif %}
   - configMapRef:
       name: s3-env
   - secretRef:

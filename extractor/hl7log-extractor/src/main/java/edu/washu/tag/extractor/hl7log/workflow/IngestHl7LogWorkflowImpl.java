@@ -72,7 +72,7 @@ public class IngestHl7LogWorkflowImpl implements IngestHl7LogWorkflow {
         IngestHl7LogWorkflowParsedInput parsedInput = IngestHl7LogWorkflowInputParser.parseInput(input);
 
         String scratchSpaceRootPath = parsedInput.scratchSpaceRootPath();
-        String scratchDir = scratchSpaceRootPath + "/" + workflowInfo.getWorkflowId();
+        String scratchDir = scratchSpaceRootPath + (scratchSpaceRootPath.endsWith("/") ? "" : "/") + workflowInfo.getWorkflowId();
 
         // Determine if we are starting a new workflow or resuming from a manifest file
         FindHl7LogFileOutput findHl7LogFileOutput;

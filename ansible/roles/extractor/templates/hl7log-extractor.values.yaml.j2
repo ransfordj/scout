@@ -1,9 +1,18 @@
 image:
   repository: '{{ hl7log_extractor_image_repository }}'
   tag: '{{ hl7log_extractor_image_tag }}'
+{% if aws_deployment %}
+serviceAccount:
+  create: false
+  automount: true
+  name: '{{ lake_writer_service_account_name }}'
+{% endif %}
+
 envFrom:
+{% if not aws_deployment %}
   - secretRef:
       name: s3-secret
+{% endif %}
   - configMapRef:
       name: s3-env
 env:
@@ -30,6 +39,42 @@ volumeMounts:
 {% if not aws_deployment %}
     mountPropagation: HostToContainer
 {% endif %}
+{% if aws_deployment and s3_sync_enabled %}
+sidecar:
+  enabled: true
+  image:
+    repository: '{{ s3_syncer_image_repository }}'
+    tag: '{{ s3_syncer_image_tag }}'
+    pullPolicy: IfNotPresent
+  env:
+    - name: S3_SOURCE_BUCKET
+      value: '{{ s3_sync_source_bucket }}'
+    - name: S3_SOURCE_PREFIX
+      value: '{{ s3_sync_source_prefix }}'
+    - name: SYNC_DESTINATION
+      value: /data
+    - name: SYNC_INTERVAL
+      value: '{{ s3_sync_interval_seconds }}'
+    - name: SYNC_DELETE
+      value: '{{ s3_sync_delete }}'
+    - name: SYNC_MODE
+      value: '{{ s3_sync_mode }}'
+  volumeMounts:
+    - name: data
+      mountPath: /data
+  resources:
+    requests:
+      memory: '{{ s3_syncer_memory_request }}'
+      cpu: '{{ s3_syncer_cpu_request }}'
+    limits:
+      memory: '{{ s3_syncer_memory_limit }}'
+      cpu: '{{ s3_syncer_cpu_limit }}'
+  securityContext:
+    allowPrivilegeEscalation: false
+{% else %}
+sidecar:
+  enabled: false
+{% endif %}
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
@@ -49,8 +94,8 @@ config:
         tags:
           namespace: '{{ extractor_namespace }}'
     s3:
-      endpoint: '{{ s3_endpoint }}'
       region: '{{ s3_region }}'
+      endpoint: '{{ s3_endpoint }}'
     spring:
       datasource:
         url: '{{ jdbc_url }}/{{ ingest_postgres_table_name }}'

@@ -26,8 +26,13 @@
           EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '{{ hive_readonly_postgres_user }}');
           EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA public TO %I', '{{ hive_readonly_postgres_user }}');
           EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO %I', '{{ hive_readonly_postgres_user }}');
-          EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT SELECT ON TABLES TO %I', '{{ hive_postgres_user }}', '{{ hive_readonly_postgres_user }}');
-          EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT SELECT ON SEQUENCES TO %I', '{{ hive_postgres_user }}', '{{ hive_readonly_postgres_user }}');
         END IF;
       END;
       $do$ LANGUAGE plpgsql;
+
+      GRANT {{ hive_postgres_user }} TO CURRENT_USER;
+      SET ROLE {{ hive_postgres_user }};
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO {{ hive_readonly_postgres_user }};
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO {{ hive_readonly_postgres_user }};
+      RESET ROLE;
+      REVOKE {{ hive_postgres_user }} FROM CURRENT_USER;

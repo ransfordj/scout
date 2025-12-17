@@ -30,15 +30,7 @@ minio_env_variables:
 # Ingress configuration
 minio_ingress_config:
   console:
-    enabled: true
-    ingressClassName: traefik
-    host: 'minio.{{ server_hostname }}'
-    path: '/'
-    pathType: Prefix
-    annotations:
-      traefik.ingress.kubernetes.io/router.middlewares: >
-        kube-system-oauth2-proxy-error@kubernetescrd,
-        kube-system-oauth2-proxy-auth@kubernetescrd
+    enabled: false
 
 # Bucket definitions
 minio_buckets:

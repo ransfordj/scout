@@ -63,20 +63,7 @@ extraSecretMounts:
 {% endif %}
 
 ingress:
-  enabled: true
-  ingressClassName: "{{ 'alb' if aws_deployment else 'traefik' }}"
-{% if aws_deployment %}
-  annotations:
-    alb.ingress.kubernetes.io/group.name: scout
-    alb.ingress.kubernetes.io/target-type: ip
-{% elif grafana_oidc_enabled | default(false) %}
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: >
-      kube-system-oauth2-proxy-error@kubernetescrd,
-      kube-system-oauth2-proxy-auth@kubernetescrd
-{% endif %}
-  hosts:
-    - 'grafana.{{ server_hostname }}'
+  enabled: false
 
 datasources:
   datasources.yaml:

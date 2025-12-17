@@ -20,10 +20,4 @@ env:
   TRINO_SCHEMA: "default"
 
 ingress:
-  enabled: true
-  className: traefik
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: >-
-      kube-system-oauth2-proxy-error@kubernetescrd,
-      kube-system-oauth2-proxy-auth@kubernetescrd
-  host: "playbooks.{{ server_hostname }}"
+  enabled: false

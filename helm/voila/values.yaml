@@ -29,7 +29,7 @@ service:
   port: 8866
 
 ingress:
-  enabled: true
+  enabled: false
   className: traefik
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: >-

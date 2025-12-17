@@ -32,19 +32,4 @@
         nextAuthSecret: '{{ launchpad_nextauth_secret }}'
         oauth2ProxySignOutUrl: '{{ oauth2_proxy_signout_url }}'
       ingress:
-        enabled: true
-        className: "{{ 'alb' if aws_deployment else 'traefik' }}"
-        annotations: |-
-          {{
-            {
-              'alb.ingress.kubernetes.io/group.name': 'scout',
-              'alb.ingress.kubernetes.io/target-type': 'ip'
-            } if aws_deployment else {
-              'traefik.ingress.kubernetes.io/router.middlewares': 'kube-system-oauth2-proxy-error@kubernetescrd, kube-system-oauth2-proxy-auth@kubernetescrd'
-            }
-          }}
-        hosts:
-          - host: '{{ server_hostname }}'
-            paths:
-              - path: /
-                pathType: Prefix
+        enabled: false

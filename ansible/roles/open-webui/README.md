@@ -33,6 +33,25 @@ In air-gapped environments (`air_gapped: true`), both model pulling and Scout mo
 **Required for air-gapped:**
 - `ollama_nfs_path`: Shared NFS path accessible by both staging and cluster
 
+**First install - manual model load required:**
+
+After the initial `make install-chat`, the Scout model exists on NFS but is not loaded into memory on the air-gapped Ollama instance. The first user request will experience a slow cold start while the model loads.
+
+To wait for the pull Job **on staging cluster**:
+```bash
+# Wait for the pull Job to complete
+kubectl get jobs -n ollama -l app=ollama-pull-models -w
+```
+
+To pre-load the model after the pull Job completes (replace the model name with your `scout_model_name` if customized) **on Scout cluster**:
+```bash
+# Load the Scout model into memory (default: gpt-oss-120b-long:latest)
+kubectl exec -n ollama deploy/ollama -- ollama run gpt-oss-120b-long:latest "hi"
+```
+Or, execute a chat in Open WebUI after you've configured the appropriate settings (see [Post-Deployment Configuration](#post-deployment-configuration)).
+
+On subsequent Ollama pod restarts, the model loads automatically via a lifecycle hook.
+
 ### Required Configuration
 
 See `defaults/main.yaml` for all available variables. Key requirements in `inventory.yaml`:
@@ -118,16 +137,40 @@ Configure the Trino MCP external tool to enable SQL querying:
    - **Advanced Params**:
      - **Function calling**: `Native`
      - **Keep alive**: `-1` (keeps model loaded indefinitely)
+     - **Reasoning Effort**: `high`
    - **Prompt Suggestions**: Select "Custom" and add sample prompts
    - **Tools**: Enable "Trino MCP", disable "Web Search" and "Code Interpreter"
 6. Click **Save**
 
-#### 4. Disable Arena Model
+#### 4. Install Link Sanitizer Filter
+
+Install a security filter to prevent data exfiltration via external links in LLM responses. This complements the CSP middleware (which blocks automatic resource loading) by also blocking clickable links. See [ADR 0010](../../../docs/internal/adr/0010-open-webui-link-exfiltration-filter.md) for details.
+
+1. Navigate to **Admin Panel → Functions** (requires admin access)
+2. Click **+ (New Function)**
+3. Set Name to "Link Sanitizer Filter"
+4. Set Description to "Removes external URLs from LLM responses to prevent data exfiltration."
+5. Copy the contents of `ansible/roles/open-webui/files/link_sanitizer_filter.py` into the code editor and click **Save**
+6. Click the **gear icon** next to the new function to configure Valves:
+   - **internal_domains**: Your organization's domain (e.g., `example.com`)
+     - This allows all subdomains: `scout.example.com`, `api.example.com`, etc.
+   - **replacement_text**: Text shown in place of removed links (default is fine)
+7. Enable the filter (you still have to add it to each model) AND/OR enable the filter globally:
+   - Click the **"..." menu** next to the function
+   - Toggle **Global** to enable for all models
+
+**What the filter does:**
+- Removes external URLs from LLM responses before display
+- Preserves internal URLs matching your configured domain
+- Handles both markdown links `[text](url)` and raw URLs
+- Prevents HIPAA violations from PHI being transmitted via clicked links
+
+#### 5. Disable Arena Model
 
 1. Navigate to **Admin Panel → Settings → Evaluations**
 2. Disable Arena Model
 
-#### 5. Verify Configuration
+#### 6. Verify Configuration
 
 Test the configuration to ensure everything is working:
 
@@ -207,3 +250,7 @@ kubectl exec -n ollama deploy/ollama -- ollama list
 - **Main Scout Docs**: https://washu-scout.readthedocs.io/
 - **Open WebUI Docs**: https://docs.openwebui.com/
 - **Scout Query Prompt**: `files/gpt-oss-scout-query-prompt.md`
+- **Link Sanitizer Filter**: `files/link_sanitizer_filter.py`
+- **Security ADRs**:
+  - [ADR 0009: Content Security Policy](../../../docs/internal/adr/0009-open-webui-content-security-policy.md)
+  - [ADR 0010: Link Exfiltration Filter](../../../docs/internal/adr/0010-open-webui-link-exfiltration-filter.md)
